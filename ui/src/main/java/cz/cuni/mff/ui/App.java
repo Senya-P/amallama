@@ -1,4 +1,4 @@
-package cz.cuni.mff;
+package cz.cuni.mff.ui;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;

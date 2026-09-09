@@ -1,9 +1,9 @@
-package cz.cuni.mff.controller;
+package cz.cuni.mff.ui.controller;
 
 import java.io.IOException;
 import javafx.fxml.FXML;
 
-import cz.cuni.mff.SceneManager;
+import cz.cuni.mff.ui.SceneManager;
 
 public class SecondaryController {
 

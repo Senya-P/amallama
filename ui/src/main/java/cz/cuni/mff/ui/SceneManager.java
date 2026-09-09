@@ -1,4 +1,4 @@
-package cz.cuni.mff;
+package cz.cuni.mff.ui;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
