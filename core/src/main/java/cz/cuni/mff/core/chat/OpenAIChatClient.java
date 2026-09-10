@@ -17,7 +17,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * A chat client that communicates with the OpenAI API.
  */
-public class OpenAIChatClient implements ChatClient {
+public final class OpenAIChatClient implements ChatClient {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final HttpClient http;
