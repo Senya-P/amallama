@@ -6,6 +6,7 @@ import cz.cuni.mff.core.chat.ChatRequest;
 import cz.cuni.mff.core.chat.ChatResponse;
 import cz.cuni.mff.core.chat.OpenAIChatClient;
 import cz.cuni.mff.core.runtime.RuntimeConfig;
+import cz.cuni.mff.core.runtime.RuntimeListener;
 import cz.cuni.mff.core.runtime.RuntimeManager;
 import cz.cuni.mff.core.runtime.RuntimeStatus;
 
@@ -100,6 +101,13 @@ public final class Session {
         return lastError;
     }
 
+    /**
+     * Adds a listener to receive runtime status change notifications.
+     * @param listener The listener to add.
+     */
+    public void addListener(RuntimeListener listener) { 
+        runtime.addListener(listener); 
+    }
 
     /**
      * Returns a user-friendly message for the given error.

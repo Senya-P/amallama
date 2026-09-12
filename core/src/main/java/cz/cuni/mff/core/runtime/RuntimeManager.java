@@ -22,4 +22,10 @@ public interface RuntimeManager {
      * @return The current runtime status.
      */
     RuntimeStatus status();
+
+    /**
+     * Adds a listener to receive runtime status change notifications.
+     * @param listener The listener to add.
+     */
+    void addListener(RuntimeListener listener);
 }

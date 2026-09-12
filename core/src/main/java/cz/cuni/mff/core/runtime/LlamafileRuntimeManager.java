@@ -6,7 +6,9 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -19,7 +21,7 @@ public final class LlamafileRuntimeManager implements RuntimeManager {
     private final AtomicReference<RuntimeStatus> status = new AtomicReference<>(RuntimeStatus.STOPPED);
     private volatile Process process;
     private final HttpClient httpClient = HttpClient.newHttpClient();
-
+    private final List<RuntimeListener> listeners = new CopyOnWriteArrayList<>(); // multiple writers
 
     public LlamafileRuntimeManager() {
         Runtime.getRuntime().addShutdownHook(
@@ -30,6 +32,19 @@ public final class LlamafileRuntimeManager implements RuntimeManager {
     @Override
     public RuntimeStatus status() {
         return status.get();
+    }
+
+    @Override 
+    public void addListener(RuntimeListener l) { 
+        listeners.add(l); 
+    }
+
+    /**
+     * Updates the status and notifies all listeners.
+     */
+    private void setStatus(RuntimeStatus newStatus) {
+        status.set(newStatus);
+        listeners.forEach(l -> l.onStatusChanged(newStatus));
     }
 
     @Override
@@ -44,21 +59,21 @@ public final class LlamafileRuntimeManager implements RuntimeManager {
             this.process = pb.start();
             process.onExit().thenRun(() -> {
                 if (status.get() == RuntimeStatus.RUNNING) {
-                    status.set(RuntimeStatus.FAILED);
+                    setStatus(RuntimeStatus.FAILED);
                 }
             });
         } catch (IOException e) {
-            status.set(RuntimeStatus.FAILED);
+            setStatus(RuntimeStatus.FAILED);
             return CompletableFuture.failedFuture(new IllegalStateException("Failed to launch llamafile", e));
         }
         return waitForRunning(config).whenComplete((s, e) -> {
             if (e != null) {
-                status.set(RuntimeStatus.FAILED);
+                setStatus(RuntimeStatus.FAILED);
                 if (process != null && process.isAlive()) {
                     process.destroyForcibly();
                 }
             } else {
-                status.set(s);
+                setStatus(s);
             }
         });
 
@@ -67,10 +82,10 @@ public final class LlamafileRuntimeManager implements RuntimeManager {
     @Override
     public CompletableFuture<Void> stop() {
         if (process == null || !process.isAlive()) {
-            status.set(RuntimeStatus.STOPPED);
+            setStatus(RuntimeStatus.STOPPED);
             return CompletableFuture.completedFuture(null);
         }
-        status.set(RuntimeStatus.STOPPING);
+        setStatus(RuntimeStatus.STOPPING);
         process.destroy();
         return process
                 .onExit()
@@ -84,7 +99,7 @@ public final class LlamafileRuntimeManager implements RuntimeManager {
                             Thread.currentThread().interrupt();
                         }
                     }
-                    status.set(RuntimeStatus.STOPPED);
+                    setStatus(RuntimeStatus.STOPPED);
                     return null;
                 });
     }
@@ -93,12 +108,12 @@ public final class LlamafileRuntimeManager implements RuntimeManager {
      * Attempts to transition the runtime status from STOPPED or FAILED to STARTING.
      * @return true if the transition was successful, false otherwise.
      */
-    private synchronized boolean tryStart() {
+    private boolean tryStart() {
         RuntimeStatus s = status.get();
         if (s != RuntimeStatus.STOPPED && s != RuntimeStatus.FAILED) {
             return false;
         }
-        status.set(RuntimeStatus.STARTING);
+        setStatus(RuntimeStatus.STARTING);
         return true;
     }
 

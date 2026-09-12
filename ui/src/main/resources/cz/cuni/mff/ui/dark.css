@@ -1,0 +1,23 @@
+.root {
+    -fx-base: #1e1e1e;
+    -fx-background: #1e1e1e;
+    -fx-control-inner-background: #2a2a2a;
+    -fx-text-fill: #e0e0e0;
+    -fx-accent: #4f8cff;
+}
+
+.status-bar {
+    -fx-padding: 6 12;
+    -fx-background-color: #2a2a2a;
+    -fx-font-size: 12px;
+}
+
+.message {
+    -fx-padding: 8 12;
+    -fx-background-radius: 8;
+    -fx-text-fill: #e0e0e0;
+}
+
+.message.user      { -fx-background-color: #2d4a7a; }
+.message.assistant { -fx-background-color: #333333; }
+.message.error     { -fx-background-color: #5a2d2d; }
