@@ -42,6 +42,11 @@ public final class LlamafileRuntimeManager implements RuntimeManager {
             pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
             pb.redirectError(ProcessBuilder.Redirect.INHERIT);
             this.process = pb.start();
+            process.onExit().thenRun(() -> {
+                if (status.get() == RuntimeStatus.RUNNING) {
+                    status.set(RuntimeStatus.FAILED);
+                }
+            });
         } catch (IOException e) {
             status.set(RuntimeStatus.FAILED);
             return CompletableFuture.failedFuture(new IllegalStateException("Failed to launch llamafile", e));
