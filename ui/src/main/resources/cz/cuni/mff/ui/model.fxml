@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="8.0" styleClass="model-view" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets top="12.0" right="12.0" bottom="12.0" left="12.0"/>
+    </padding>
+    <HBox spacing="8.0" alignment="CENTER_LEFT">
+        <Label fx:id="runtimeLabel" styleClass="runtime-label" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+        <Button text="Browse…" onAction="#onBrowseRuntime"/>
+    </HBox>
+    <Label text="Local models" styleClass="section-title"/>
+    <ListView fx:id="modelList" prefHeight="140.0" maxHeight="140.0"/>
+    <Label fx:id="errorLabel" styleClass="error-text" wrapText="true"/>
+    <HBox spacing="8.0" alignment="CENTER_LEFT">
+        <Button text="Refresh" onAction="#onRefresh"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button fx:id="loadButton" text="Load" onAction="#onLoad" defaultButton="true"/>
+    </HBox>
+    <TextField promptText="Search models..." disable="true" styleClass="search-field"/>
+</VBox>

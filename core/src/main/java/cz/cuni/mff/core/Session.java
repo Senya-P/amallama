@@ -91,6 +91,16 @@ public final class Session {
     }
 
     /**
+     * Restarts the runtime with the new configuration.
+     * @param config The new runtime configuration
+     * @return a future completing with the new runtime status
+     */
+    public CompletableFuture<RuntimeStatus> restart(RuntimeConfig config) {
+        history.clear();
+        return stop().thenCompose(v -> start(config));
+    }
+
+    /**
      * @return the current runtime status
      */
     public RuntimeStatus status() {

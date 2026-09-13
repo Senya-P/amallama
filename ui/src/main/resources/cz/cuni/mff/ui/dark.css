@@ -120,3 +120,104 @@
     -fx-background-color: #2a3a5a;
     -fx-text-fill: #6a6a6a;
 }
+
+/* Tabs */
+.tab-pane {
+    -fx-background-color: #1a1a1a;
+}
+
+.tab-pane > .tab-header-area {
+    -fx-padding: 8 12 0 12;
+}
+
+.tab-pane > .tab-header-area > .tab-header-background {
+    -fx-background-color: #1f1f1f;
+    -fx-border-color: transparent transparent #333333 transparent;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab {
+    -fx-background-color: transparent;
+    -fx-background-radius: 6 6 0 0;
+    -fx-padding: 8 18 8 18;
+    -fx-border-color: transparent;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab:hover {
+    -fx-background-color: #2a2a2a;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab:selected {
+    -fx-background-color: #262626;
+}
+
+.tab .tab-label {
+    -fx-text-fill: #8a8a8a;
+    -fx-font-size: 13px;
+}
+
+.tab:selected .tab-label {
+    -fx-text-fill: #d4d4d4;
+    -fx-font-family: 'Ioskeley Mono Medium';
+}
+
+/* Model view */
+.model-view {
+    -fx-background-color: #1a1a1a;
+}
+
+.section-title {
+    -fx-font-family: 'Ioskeley Mono Medium';
+    -fx-font-size: 13px;
+    -fx-text-fill: #8a8a8a;
+}
+
+.runtime-label {
+    -fx-font-size: 13px;
+    -fx-text-fill: #d4d4d4;
+    -fx-background-color: #262626;
+    -fx-background-radius: 6;
+    -fx-padding: 6 10;
+}
+
+.error-text {
+    -fx-font-size: 12px;
+    -fx-text-fill: #f85149;
+}
+
+.list-view {
+    -fx-background-color: #262626;
+    -fx-background-radius: 6;
+    -fx-border-color: transparent;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #d4d4d4;
+    -fx-padding: 4 8;
+}
+
+.list-cell:filled:hover {
+    -fx-background-color: #2e2e2e;
+}
+
+.list-cell:filled:selected {
+    -fx-background-color: #404040;
+    -fx-text-fill: #d4d4d4;
+}
+
+.list-view:focused > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected {
+    -fx-background-color: #4e6da8;
+    -fx-text-fill: #ffffff;
+}
+
+.search-field {
+    -fx-background-color: #262626;
+    -fx-background-radius: 6;
+    -fx-border-color: transparent;
+    -fx-prompt-text-fill: #6a6a6a;
+    -fx-text-fill: #d4d4d4;
+}

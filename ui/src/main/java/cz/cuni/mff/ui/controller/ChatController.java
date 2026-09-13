@@ -58,6 +58,10 @@ public class ChatController {
         statusDot.getStyleClass().add(statusStyle);
 
         busy.set(status != RuntimeStatus.RUNNING);
+        if (status == RuntimeStatus.RUNNING) {
+            modelLabel.setText(session.modelName());
+        }
+
     }
 
     @FXML
@@ -87,4 +91,9 @@ public class ChatController {
         historyBox.getChildren().add(message);
         Platform.runLater(() -> historyScroll.setVvalue(1.0));
     }
+
+    public void clearHistory() {
+        historyBox.getChildren().clear();
+    }
+
 }

@@ -5,6 +5,8 @@ module amallama.core {
     exports cz.cuni.mff.core;
     exports cz.cuni.mff.core.chat;
     exports cz.cuni.mff.core.runtime;
+    exports cz.cuni.mff.core.model;
 
     opens cz.cuni.mff.core.chat to com.fasterxml.jackson.databind;
+    opens cz.cuni.mff.core.model to com.fasterxml.jackson.databind;
 }
