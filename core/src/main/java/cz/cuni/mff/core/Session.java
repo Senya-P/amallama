@@ -10,6 +10,7 @@ import cz.cuni.mff.core.runtime.RuntimeListener;
 import cz.cuni.mff.core.runtime.RuntimeManager;
 import cz.cuni.mff.core.runtime.RuntimeStatus;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -29,6 +30,7 @@ public final class Session {
     private final List<ChatMessage> history = new ArrayList<>();
     private ChatClient chat;
     private String lastError;
+    private String modelName;
 
     public Session(RuntimeManager runtime) {
         this.runtime = runtime;
@@ -43,6 +45,7 @@ public final class Session {
      * exceptionally, the reason is in {@link #lastError()}
      */
     public CompletableFuture<RuntimeStatus> start(RuntimeConfig config) {
+        modelName = fileNameOf(config);
         return runtime.start(config).handle((status, error) -> {
             if (error != null) {
                 lastError = messageOf(error);
@@ -92,6 +95,20 @@ public final class Session {
      */
     public RuntimeStatus status() {
         return runtime.status();
+    }
+
+    /**
+     * @return the file name of the loaded model 
+     * (or of the backend binary when no separate model file is used), 
+     * or {@code null} if never started
+     */
+    public String modelName() {
+        return modelName;
+    }
+
+    private static String fileNameOf(RuntimeConfig config) {
+        Path file = config.modelPath() != null ? config.modelPath() : config.backendBinary();
+        return file != null ? file.getFileName().toString() : null;
     }
 
     /**

@@ -6,12 +6,11 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
 <BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1">
-    <top>
-        <Label fx:id="statusLabel" styleClass="status-bar"/>
-    </top>
     <center>
         <ScrollPane fx:id="historyScroll" fitToWidth="true">
             <VBox fx:id="historyBox" spacing="8.0" styleClass="chat-history">
@@ -27,7 +26,13 @@
                 <Insets top="12.0" right="12.0" bottom="12.0" left="12.0"/>
             </padding>
             <TextArea fx:id="inputArea" promptText="Message the model..." prefRowCount="3" wrapText="true"/>
-            <Button fx:id="sendButton" text="Send" onAction="#onSend" defaultButton="true"/>
+            <HBox alignment="CENTER_LEFT" spacing="10.0">
+                <Region fx:id="statusDot" styleClass="status-dot"/>
+                <Label fx:id="statusLabel" styleClass="status-text"/>
+                <Label fx:id="modelLabel" styleClass="model-text"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button fx:id="sendButton" text="Send" onAction="#onSend" defaultButton="true"/>
+            </HBox>
         </VBox>
     </bottom>
 </BorderPane>

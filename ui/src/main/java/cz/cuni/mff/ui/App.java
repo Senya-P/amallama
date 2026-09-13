@@ -12,13 +12,14 @@ import java.nio.file.Path;
 import cz.cuni.mff.core.Session;
 import cz.cuni.mff.core.runtime.LlamafileRuntimeManager;
 import cz.cuni.mff.core.runtime.RuntimeConfig;
-import cz.cuni.mff.ui.controller.SessionController;
+import cz.cuni.mff.ui.controller.ChatController;
 
 /**
- * JavaFX App — launch only. Scene management is handled by {@link SceneManager}.
+ * JavaFX entry point. Loads the chat view and wires it to a {@link Session}.
  */
 public class App extends Application {
 
+    private static final String TITLE = "amallama";
     @Override
     public void start(Stage stage) throws IOException {
         String binary = getParameters().getRaw().stream().findFirst().orElseThrow(() -> new IllegalArgumentException());
@@ -26,12 +27,15 @@ public class App extends Application {
         Session session = new Session(new LlamafileRuntimeManager());
         session.start(RuntimeConfig.of(Path.of(binary)));
 
-        FXMLLoader loader = new FXMLLoader(App.class.getResource("session.fxml"));
-        loader.setController(new SessionController(session));
+        FXMLLoader loader = new FXMLLoader(App.class.getResource("chat.fxml"));
+        loader.setController(new ChatController(session));
         Parent root = loader.load();
 
-        Scene scene = new Scene(root, 900, 650);
+        Scene scene = new Scene(root, 1200, 800);
         scene.getStylesheets().add(App.class.getResource("dark.css").toExternalForm());
+        stage.setTitle(TITLE);
+        stage.setMinWidth(900);
+        stage.setMinHeight(650);
         stage.setScene(scene);
         stage.show();
     }

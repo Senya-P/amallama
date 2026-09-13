@@ -1,23 +1,122 @@
-.root {
-    -fx-base: #1e1e1e;
-    -fx-background: #1e1e1e;
-    -fx-control-inner-background: #2a2a2a;
-    -fx-text-fill: #e0e0e0;
-    -fx-accent: #4f8cff;
+@font-face {
+    font-family: 'Ioskeley Mono';
+    src: url('fonts/IoskeleyMono-Regular.ttf');
+}
+@font-face {
+    font-family: 'Ioskeley Mono Medium';
+    src: url('fonts/IoskeleyMono-Medium.ttf');
+}
+@font-face {
+    font-family: 'Ioskeley Mono Bold';
+    src: url('fonts/IoskeleyMono-Bold.ttf');
 }
 
-.status-bar {
-    -fx-padding: 6 12;
-    -fx-background-color: #2a2a2a;
-    -fx-font-size: 12px;
+.root {
+    -fx-font-family: 'Ioskeley Mono';
+    -fx-font-size: 14px;
+
+    -fx-base: #1f1f1f;
+    -fx-background: #1a1a1a;
+    -fx-control-inner-background: #262626;
+    -fx-text-fill: #d4d4d4;
+    -fx-text-background-color: #d4d4d4;
+    -fx-accent: #4f8cff;
+    -fx-focus-color: #4f8cff;
+    -fx-faint-focus-color: rgba(79, 140, 255, 0.15);
+}
+
+.chat-history {
+    -fx-background-color: #1a1a1a;
 }
 
 .message {
     -fx-padding: 8 12;
     -fx-background-radius: 8;
-    -fx-text-fill: #e0e0e0;
+    -fx-text-fill: #d4d4d4;
 }
 
-.message.user      { -fx-background-color: #2d4a7a; }
-.message.assistant { -fx-background-color: #333333; }
-.message.error     { -fx-background-color: #5a2d2d; }
+.message.user      { -fx-background-color: rgba(79, 140, 255, 0.15); }
+.message.assistant { -fx-background-color: #262626; }
+.message.error     { -fx-background-color: rgba(248, 81, 73, 0.15); }
+
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+    -fx-border-color: transparent;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar:vertical .track,
+.scroll-bar:horizontal .track {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar:vertical .thumb,
+.scroll-bar:horizontal .thumb {
+    -fx-background-color: #3a3a3a;
+    -fx-background-radius: 4;
+}
+
+.chat-input {
+    -fx-background-color: #1f1f1f;
+    -fx-border-color: #333333 transparent transparent transparent;
+}
+
+.text-area {
+    -fx-background-color: #262626;
+    -fx-background-radius: 6;
+    -fx-border-color: transparent;
+    -fx-prompt-text-fill: #6a6a6a;
+}
+
+.text-area .content {
+    -fx-background-color: #262626;
+    -fx-background-radius: 6;
+}
+
+.status-dot {
+    -fx-min-width: 8px;
+    -fx-min-height: 8px;
+    -fx-max-width: 8px;
+    -fx-max-height: 8px;
+    -fx-background-radius: 4px;
+    -fx-background-color: #8a8a8a;
+}
+
+.status-dot.stopped  { -fx-background-color: #8a8a8a; }
+.status-dot.starting { -fx-background-color: #e0a63c; }
+.status-dot.running  { -fx-background-color: #3fb950; }
+.status-dot.stopping { -fx-background-color: #e0a63c; }
+.status-dot.failed   { -fx-background-color: #f85149; }
+
+.status-text {
+    -fx-font-family: 'Ioskeley Mono Medium';
+    -fx-font-size: 12px;
+    -fx-text-fill: #8a8a8a;
+}
+
+.model-text {
+    -fx-font-size: 12px;
+    -fx-text-fill: #6a6a6a;
+}
+
+.button {
+    -fx-background-color: #4e6da8;
+    -fx-background-radius: 6;
+    -fx-text-fill: #ffffff;
+    -fx-font-family: 'Ioskeley Mono Medium';
+    -fx-padding: 6 20;
+}
+
+.button:hover {
+    -fx-background-color: #5c81c5;
+}
+
+.button:disabled {
+    -fx-background-color: #2a3a5a;
+    -fx-text-fill: #6a6a6a;
+}

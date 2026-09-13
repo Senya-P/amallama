@@ -6,7 +6,5 @@ module amallama.core {
     exports cz.cuni.mff.core.chat;
     exports cz.cuni.mff.core.runtime;
 
-    // Jackson reflects into the chat DTOs (including the private nested
-    // CompletionResponse in OpenAIChatClient) — exports alone is not enough.
     opens cz.cuni.mff.core.chat to com.fasterxml.jackson.databind;
 }

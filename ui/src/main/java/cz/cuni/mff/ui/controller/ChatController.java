@@ -1,6 +1,7 @@
 package cz.cuni.mff.ui.controller;
 
 import cz.cuni.mff.core.Session;
+import cz.cuni.mff.core.runtime.RuntimeStatus;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -9,27 +10,54 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
-public class SessionController {
+public class ChatController {
     private final Session session;
-    private final BooleanProperty busy = new SimpleBooleanProperty(false);
+    private final BooleanProperty busy = new SimpleBooleanProperty(true);
+    private String statusStyle;
 
+    @FXML private Region statusDot;
     @FXML private Label statusLabel;
+    @FXML private Label modelLabel;
     @FXML private ScrollPane historyScroll;
     @FXML private VBox historyBox;
     @FXML private TextArea inputArea;
     @FXML private Button sendButton;
 
-    public SessionController(Session session) {
+    public ChatController(Session session) {
         this.session = session;
     }
+
     @FXML
     private void initialize() {
-        session.addListener(status -> Platform.runLater(() ->statusLabel.setText("Runtime: " + status)));
-        statusLabel.setText("Runtime: " + session.status());
+        modelLabel.setText(session.modelName());
+
+        setStatus(session.status());
+        session.addListener(status -> Platform.runLater(() -> setStatus(status)));
 
         sendButton.disableProperty().bind(inputArea.textProperty().isEmpty().or(busy));
+
+        inputArea.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == KeyCode.ENTER && !event.isShiftDown() && !busy.get()) {
+                event.consume();
+                onSend();
+            }
+        });
+    }
+
+    private void setStatus(RuntimeStatus status) {
+        statusLabel.setText(status.name());
+        if (statusStyle != null) {
+            statusDot.getStyleClass().remove(statusStyle);
+        }
+        statusStyle = status.name().toLowerCase();
+        statusDot.getStyleClass().add(statusStyle);
+
+        busy.set(status != RuntimeStatus.RUNNING);
     }
 
     @FXML
