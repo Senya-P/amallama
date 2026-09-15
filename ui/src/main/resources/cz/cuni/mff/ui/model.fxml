@@ -19,11 +19,10 @@
     </HBox>
     <Label text="Local models" styleClass="section-title"/>
     <ListView fx:id="modelList" prefHeight="140.0" maxHeight="140.0"/>
-    <Label fx:id="errorLabel" styleClass="error-text" wrapText="true"/>
     <HBox spacing="8.0" alignment="CENTER_LEFT">
         <Button text="Refresh" onAction="#onRefresh"/>
         <Region HBox.hgrow="ALWAYS"/>
         <Button fx:id="loadButton" text="Load" onAction="#onLoad" defaultButton="true"/>
     </HBox>
-    <TextField promptText="Search models..." disable="true" styleClass="search-field"/>
+    <fx:include fx:id="download" source="download.fxml"/>
 </VBox>

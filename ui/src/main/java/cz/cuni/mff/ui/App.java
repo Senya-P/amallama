@@ -9,11 +9,12 @@ import javafx.scene.control.TabPane;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.nio.file.Path;
 
+import cz.cuni.mff.core.AppConfig;
 import cz.cuni.mff.core.Session;
+import cz.cuni.mff.core.download.HFModelDownloader;
+import cz.cuni.mff.core.download.ModelDownloader;
 import cz.cuni.mff.core.model.ModelManager;
-import cz.cuni.mff.core.model.AppConfig;
 import cz.cuni.mff.core.runtime.LlamafileRuntimeManager;
 import cz.cuni.mff.core.runtime.RuntimeConfig;
 import cz.cuni.mff.ui.controller.ChatController;
@@ -44,7 +45,8 @@ public class App extends Application {
         Parent chatView = chatLoader.load();
 
         FXMLLoader modelLoader = new FXMLLoader(App.class.getResource("model.fxml"));
-        ModelController modelController = new ModelController(store, model, session);
+        ModelDownloader downloader = new HFModelDownloader(store.modelsDirectory());
+        ModelController modelController = new ModelController(store, model, session, downloader);
         modelController.setOnModelLoaded(chatController::clearHistory);
         modelLoader.setController(modelController);
         Parent modelView = modelLoader.load();

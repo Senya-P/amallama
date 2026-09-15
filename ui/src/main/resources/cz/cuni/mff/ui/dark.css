@@ -20,8 +20,8 @@
     -fx-control-inner-background: #262626;
     -fx-text-fill: #d4d4d4;
     -fx-text-background-color: #d4d4d4;
-    -fx-accent: #4f8cff;
-    -fx-focus-color: #4f8cff;
+    -fx-accent: #4e6da8;
+    -fx-focus-color: #4e6da8;
     -fx-faint-focus-color: rgba(79, 140, 255, 0.15);
 }
 
@@ -162,7 +162,6 @@
     -fx-font-family: 'Ioskeley Mono Medium';
 }
 
-/* Model view */
 .model-view {
     -fx-background-color: #1a1a1a;
 }
@@ -220,4 +219,22 @@
     -fx-border-color: transparent;
     -fx-prompt-text-fill: #6a6a6a;
     -fx-text-fill: #d4d4d4;
+}
+
+.progress-bar {
+    -fx-background-color: transparent;
+    -fx-pref-height: 6px;
+    -fx-max-height: 6px;
+}
+
+.progress-bar > .track {
+    -fx-background-color: #2a2a2a;
+    -fx-background-insets: 0;
+    -fx-background-radius: 4;
+}
+
+.progress-bar > .bar {
+    -fx-background-color: #4e6da8;
+    -fx-background-insets: 0;
+    -fx-background-radius: 4;
 }

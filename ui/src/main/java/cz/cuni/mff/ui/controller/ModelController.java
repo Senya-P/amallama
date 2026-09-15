@@ -3,11 +3,11 @@ package cz.cuni.mff.ui.controller;
 import java.io.File;
 import java.nio.file.Path;
 
+import cz.cuni.mff.core.AppConfig;
 import cz.cuni.mff.core.Session;
+import cz.cuni.mff.core.download.ModelDownloader;
 import cz.cuni.mff.core.model.LocalModel;
-import cz.cuni.mff.core.model.ModelException;
 import cz.cuni.mff.core.model.ModelManager;
-import cz.cuni.mff.core.model.AppConfig;
 import cz.cuni.mff.core.runtime.RuntimeStatus;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -20,22 +20,28 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.Tooltip;
 import javafx.stage.FileChooser;
 
+/**
+ * Controller for the model selection view.
+ * Handles model loading, refreshing, and runtime selection.
+ */
 public class ModelController {
     private final AppConfig config;
     private final ModelManager models;
     private final Session session;
+    private final ModelDownloader downloader;
     private final BooleanProperty loading = new SimpleBooleanProperty(false);
     private Runnable onModelLoaded = () -> {};
 
     @FXML private ListView<LocalModel> modelList;
-    @FXML private Label errorLabel;
     @FXML private Button loadButton;
     @FXML private Label runtimeLabel;
+    @FXML private DownloadController downloadController;
 
-    public ModelController(AppConfig config, ModelManager models, Session session) {
+    public ModelController(AppConfig config, ModelManager models, Session session, ModelDownloader downloader) {
         this.config = config;
         this.models = models;
         this.session = session;
+        this.downloader = downloader;
     }
 
     public void setOnModelLoaded(Runnable onModelLoaded) {
@@ -44,8 +50,6 @@ public class ModelController {
 
     @FXML
     private void initialize() {
-        errorLabel.setVisible(false);
-        errorLabel.setManaged(false);
         modelList.setPlaceholder(new Label("No models found in the models directory"));
         modelList.setCellFactory(list -> new ListCell<>() {
             @Override
@@ -59,6 +63,8 @@ public class ModelController {
                 modelList.getSelectionModel().selectedItemProperty().isNull().or(loading)
         );
         session.addListener(status -> Platform.runLater(() -> loading.set(isLoading(status))));
+        downloadController.setDownloader(downloader);
+        downloadController.setOnDownloaded(this::onDownloaded);
         refreshModelsList();
         refreshRuntime();
     }
@@ -78,13 +84,12 @@ public class ModelController {
         if (model == null) {
             return;
         }
-        try {
-            session.restart(models.select(model));
-            onModelLoaded.run();
-            errorLabel.setVisible(false);
-        } catch (ModelException e) {
-            showError(e.getMessage());
-        }
+        session.restart(models.select(model));
+        onModelLoaded.run();
+    }
+
+    private void onDownloaded(Path target) {
+        refreshModelsList();
     }
 
     @FXML
@@ -110,11 +115,5 @@ public class ModelController {
         if (selected != null) {
             modelList.getSelectionModel().select(selected);
         }
-    }
-
-    private void showError(String message) {
-        errorLabel.setText(message);
-        errorLabel.setVisible(true);
-        errorLabel.setManaged(true);
     }
 }

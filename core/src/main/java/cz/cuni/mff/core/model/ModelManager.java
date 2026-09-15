@@ -1,5 +1,6 @@
 package cz.cuni.mff.core.model;
 
+import cz.cuni.mff.core.AppConfig;
 import cz.cuni.mff.core.runtime.RuntimeConfig;
 
 /**

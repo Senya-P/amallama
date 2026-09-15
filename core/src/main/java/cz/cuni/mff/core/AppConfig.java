@@ -1,4 +1,4 @@
-package cz.cuni.mff.core.model;
+package cz.cuni.mff.core;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -8,6 +8,13 @@ import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import cz.cuni.mff.core.model.LocalModel;
+import cz.cuni.mff.core.model.ModelException;
+
+/**
+ * Represents the application configuration, including selected model and runtime binary.
+ * Owns the models directory and config.json.
+ */
 public class AppConfig {
     private static final Path AMALLAMA_PATH = Path.of(System.getProperty("user.home"), ".amallama");
     private static final Path MODELS_PATH = AMALLAMA_PATH.resolve("models");
@@ -67,6 +74,10 @@ public class AppConfig {
     public void selectModel(LocalModel model) {
         config = new Config(model.name(), config.runtimeBinary());
         save();
+    }
+
+    public Path modelsDirectory() {
+        return MODELS_PATH;
     }
 
     private void save() {
