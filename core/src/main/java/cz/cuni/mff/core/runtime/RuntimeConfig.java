@@ -14,9 +14,6 @@ import java.util.List;
  * @param contextSize Context window size. 0 means to use the model default
  * @param threads Number of CPU threads to use during generation
  * @param gpuLayers Number of GPU layers (0 = CPU only)
- * @param temperature The temperature for text generation
- * @param topK The top-k value for text generation
- * @param topP The top-p value for text generation
  * 
 */
 public record RuntimeConfig(
@@ -28,6 +25,9 @@ public record RuntimeConfig(
     int threads,          // -t, CPU threads
     int gpuLayers        // -ngl, 0 = CPU only
 ) {
+    public static final String DEFAULT_HOST = "127.0.0.1";
+    public static final int DEFAULT_PORT = 8080;
+
     public List<String> toCommandLine() { 
         List<String> args = new ArrayList<>(List.of(
             backendBinary.toString(),
@@ -43,14 +43,11 @@ public record RuntimeConfig(
         }
         return args;
     }
-    public static RuntimeConfig of(Path backendBinary) {
-        return of(backendBinary, null);
-    }
 
-    public static RuntimeConfig of(Path backendBinary, Path modelPath) {
+    public static RuntimeConfig of(Path backendBinary, Path modelPath, int contextSize, int threads, int gpuLayers) {
         return new RuntimeConfig(backendBinary, modelPath,
-            "127.0.0.1", 8080, 0,
-            Runtime.getRuntime().availableProcessors(), 0
+            DEFAULT_HOST, DEFAULT_PORT, contextSize,
+            threads, gpuLayers
         );
     }
 }

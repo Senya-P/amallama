@@ -14,7 +14,9 @@ import cz.cuni.mff.core.AppConfig;
 import cz.cuni.mff.core.Session;
 import cz.cuni.mff.core.download.HFModelDownloader;
 import cz.cuni.mff.core.download.ModelDownloader;
+import cz.cuni.mff.core.hw.OshiHardwareDetector;
 import cz.cuni.mff.core.model.ModelManager;
+import cz.cuni.mff.core.runtime.HwAwareRuntimeConfigGenerator;
 import cz.cuni.mff.core.runtime.LlamafileRuntimeManager;
 import cz.cuni.mff.core.runtime.RuntimeConfig;
 import cz.cuni.mff.ui.controller.ChatController;
@@ -31,7 +33,7 @@ public class App extends Application {
         //String binary = getParameters().getRaw().stream().findFirst().orElse(null);
 
         AppConfig store = new AppConfig();
-        ModelManager model = new ModelManager(store);
+        ModelManager model = new ModelManager(store, new HwAwareRuntimeConfigGenerator(new OshiHardwareDetector()));
         Session session = new Session(new LlamafileRuntimeManager());
         RuntimeConfig config = model.selectInitial();
         if (config == null) {
