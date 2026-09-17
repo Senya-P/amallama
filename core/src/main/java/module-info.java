@@ -1,3 +1,7 @@
+/**
+ * Core backend module of amallama. Contains no JavaFX dependencies so the
+ * backend stays usable and testable on its own.
+ */
 module amallama.core {
     requires com.fasterxml.jackson.databind;
     requires java.net.http;

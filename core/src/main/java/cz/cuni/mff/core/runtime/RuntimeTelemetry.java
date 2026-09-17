@@ -16,13 +16,17 @@ public record RuntimeTelemetry(
 ) {
     
     /**
-     * The backend's pre-load memory projection
-     * @param usedBytes
+     * The backend's pre-load memory projection.
+     * @param usedBytes bytes reported used at that location
      * @param availableBytes bytes reported available at that location
      */
     public record Memory(long usedBytes, long availableBytes) {
     }
 
+    /**
+     * Returns whether the model was offloaded to the GPU.
+     * @return true if at least one layer was offloaded to the GPU
+     */
     public boolean offloadedToGpu() {
         return layersOffloaded != null && layersOffloaded > 0;
     }

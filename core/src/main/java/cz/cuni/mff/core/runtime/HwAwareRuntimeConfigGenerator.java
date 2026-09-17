@@ -21,6 +21,10 @@ public class HwAwareRuntimeConfigGenerator implements RuntimeConfigGenerator {
 
     private final HardwareDetector hardwareDetector;
 
+    /**
+     * Creates a generator using the given hardware detector.
+     * @param hardwareDetector the detector used to probe the machine's hardware
+     */
     public HwAwareRuntimeConfigGenerator(HardwareDetector hardwareDetector) {
         this.hardwareDetector = hardwareDetector;
     }

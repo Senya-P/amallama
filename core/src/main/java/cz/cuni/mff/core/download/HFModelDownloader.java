@@ -31,6 +31,10 @@ public final class HFModelDownloader implements ModelDownloader {
     private final HttpClient http;
     private final Path downloadDirectory;
 
+    /**
+     * Creates a downloader writing into the given directory.
+     * @param targetDir the directory downloaded models are written into
+     */
     public HFModelDownloader(Path targetDir) {
         this.downloadDirectory = targetDir;
         try {

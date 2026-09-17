@@ -25,6 +25,9 @@ public class AppConfig {
 
     private record Config(String model, String runtimeBinary) {}
 
+    /**
+     * Loads the configuration from config.json, creating the models directory if needed.
+     */
     public AppConfig() {
         try {
             Files.createDirectories(MODELS_PATH);
@@ -43,6 +46,10 @@ public class AppConfig {
     }
 
 
+    /**
+     * Scans the models directory for model files.
+     * @return the models found in the models directory, sorted by name
+     */
     public List<LocalModel> getModels() {
         try (var files = Files.list(MODELS_PATH)) {
             return files
@@ -55,27 +62,47 @@ public class AppConfig {
         }
     }
 
+    /**
+     * Returns the persisted model selection.
+     * @return the persisted model if it still exists on disk, or {@code null} if none is selected
+     */
     public LocalModel model() {
         Path path = resolve(config.model());
         return path != null && isModelFile(path) ? LocalModel.of(path) : null;
     }
 
+    /**
+     * Returns the runtime binary to use.
+     * @return the selected runtime binary, or an autodetected one if none is selected
+     */
     public Path runtimeBinary() {
         Path selected = resolve(config.runtimeBinary());
         return selected != null ? selected : autodetectRuntime();
     }
 
+    /**
+     * Persists the given binary as the runtime to use.
+     * @param binary the runtime binary, or {@code null} to clear the selection
+     */
     public void selectRuntimeBinary(Path binary) {
         String value = binary == null ? null : binary.toAbsolutePath().normalize().toString();
         config = new Config(config.model(), value);
         save();
     }
 
+    /**
+     * Persists the given model as the selected one.
+     * @param model the model to select
+     */
     public void selectModel(LocalModel model) {
         config = new Config(model.name(), config.runtimeBinary());
         save();
     }
 
+    /**
+     * Returns the models directory.
+     * @return the directory models are downloaded into and scanned from
+     */
     public Path modelsDirectory() {
         return MODELS_PATH;
     }

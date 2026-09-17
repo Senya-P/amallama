@@ -30,6 +30,13 @@ import cz.cuni.mff.ui.controller.ModelController;
 public class App extends Application {
 
     private static final String TITLE = "amallama";
+
+    /**
+     * Creates the application.
+     */
+    public App() {
+    }
+
     @Override
     public void start(Stage stage) throws IOException {
         //String binary = getParameters().getRaw().stream().findFirst().orElse(null);
@@ -67,6 +74,10 @@ public class App extends Application {
         stage.show();
     }
 
+    /**
+     * Application entry point.
+     * @param args command line arguments
+     */
     public static void main(String[] args) {
         launch(args);
     }

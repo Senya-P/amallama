@@ -14,6 +14,11 @@ public record LocalModel(
     Path path,
     boolean selfContained
 ) {
+    /**
+     * Creates a model from a file path, detecting whether it is self-contained.
+     * @param path the model file
+     * @return the model
+     */
     public static LocalModel of(Path path) { 
         boolean selfContained = path.getFileName().toString().endsWith(".llamafile");
         return new LocalModel(

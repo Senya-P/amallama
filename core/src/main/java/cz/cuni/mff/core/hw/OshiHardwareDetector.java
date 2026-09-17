@@ -17,12 +17,16 @@ public class OshiHardwareDetector implements HardwareDetector {
     private final SystemInfoProvider provider;
 
     /**
-     * Creates a new instance of {@link OshiHardwareDetector} using the default system info provider.
+     * Creates a detector using the default system info provider.
      */
     public OshiHardwareDetector() {
         this(SystemInfoFactory.create());
     }
 
+    /**
+     * Creates a detector using the given provider.
+     * @param provider the system info provider to read hardware from
+     */
     public OshiHardwareDetector(SystemInfoProvider provider) {
         this.provider = provider;
     }

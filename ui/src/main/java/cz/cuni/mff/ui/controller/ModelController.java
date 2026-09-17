@@ -41,6 +41,12 @@ public class ModelController {
     @FXML private Label usageLabel;
     @FXML private DownloadController downloadController;
 
+    /**
+     * @param config the application configuration
+     * @param models the model manager
+     * @param session the backend session
+     * @param downloader the model downloader
+     */
     public ModelController(AppConfig config, ModelManager models, Session session, ModelDownloader downloader) {
         this.config = config;
         this.models = models;
@@ -48,6 +54,10 @@ public class ModelController {
         this.downloader = downloader;
     }
 
+    /**
+     * Sets the callback invoked after a model is loaded.
+     * @param onModelLoaded the callback
+     */
     public void setOnModelLoaded(Runnable onModelLoaded) {
         this.onModelLoaded = onModelLoaded;
     }

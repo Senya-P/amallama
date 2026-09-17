@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>amallama</title>
+</head>
+<body>
+<h1>amallama</h1>
+<p>
+A cross-platform desktop application for managing local LLM runtimes such as
+llamafile. It lets the user select or download a GGUF model, switch models, 
+and chat with the loaded model through its OpenAI-compatible endpoint.
+</p>
+<h2>Modules</h2>
+<ul>
+<li><strong>amallama.core</strong> — backend services: configuration, model
+management, runtime control, chat client, hardware detection, and JMX
+monitoring. Has no JavaFX dependencies.</li>
+<li><strong>amallama.ui</strong> — JavaFX user interface: application entry
+point, FXML views, and controllers.</li>
+</ul>
+<h2>Building</h2>
+<p>
+Requires JDK 25. Build with <code>mvn package</code>; run the UI with
+<code>mvn -pl ui javafx:run</code>.
+</p>
+</body>
+</html>

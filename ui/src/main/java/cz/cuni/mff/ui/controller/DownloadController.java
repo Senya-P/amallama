@@ -34,10 +34,18 @@ public class DownloadController {
     @FXML private ProgressBar progressBar;
     @FXML private Label downloadStatus;
 
+    /**
+     * Sets the downloader used for direct-link downloads.
+     * @param downloader the downloader
+     */
     public void setDownloader(ModelDownloader downloader) {
         this.downloader = downloader;
     }
 
+    /**
+     * Sets the callback invoked when a download completes.
+     * @param onDownloaded the callback receiving the downloaded file path
+     */
     public void setOnDownloaded(Consumer<Path> onDownloaded) {
         this.onDownloaded = onDownloaded;
     }

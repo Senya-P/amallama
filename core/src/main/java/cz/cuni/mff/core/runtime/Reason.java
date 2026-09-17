@@ -7,7 +7,10 @@ import cz.cuni.mff.core.hw.GpuInfo;
  */
 public sealed interface Reason {
 
-    /** A GPU was found and the model fits in its free memory. */
+    /**
+     * A GPU was found and the model fits in its free memory.
+     * @param gpu the GPU the model will be offloaded to
+     */
     record FullOffload(GpuInfo gpu) implements Reason {}
 
     /** No GPU was detected. */

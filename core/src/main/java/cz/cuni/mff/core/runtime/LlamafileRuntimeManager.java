@@ -16,6 +16,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * Manages a llamafile backend process: launching, readiness polling, stopping,
+ * and status notification.
+ */
 public final class LlamafileRuntimeManager implements RuntimeManager {
 
     private static final Duration READY_TIMEOUT = Duration.ofSeconds(60);
@@ -27,6 +31,10 @@ public final class LlamafileRuntimeManager implements RuntimeManager {
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final List<RuntimeListener> listeners = new CopyOnWriteArrayList<>(); // multiple writers
 
+    /**
+     * Creates a runtime manager and registers a shutdown hook that kills the
+     * child process if the application exits while it is still running.
+     */
     public LlamafileRuntimeManager() {
         Runtime.getRuntime().addShutdownHook(
                 Thread.ofPlatform().name("llamafile-cleanup").unstarted(this::cleanupOnExit)

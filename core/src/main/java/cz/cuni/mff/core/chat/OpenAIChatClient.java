@@ -23,6 +23,10 @@ public final class OpenAIChatClient implements ChatClient {
     private final HttpClient http;
     private final URI endpoint;
 
+    /**
+     * Creates a client for the given server.
+     * @param baseUrl the base URL of the OpenAI-compatible server, e.g. {@code http://127.0.0.1:8080}
+     */
     public OpenAIChatClient(String baseUrl) {
         this.http = HttpClient.newHttpClient();
         this.endpoint = URI.create(baseUrl + "/v1/chat/completions");

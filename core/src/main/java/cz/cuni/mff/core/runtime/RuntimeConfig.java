@@ -28,6 +28,10 @@ public record RuntimeConfig(
     public static final String DEFAULT_HOST = "127.0.0.1";
     public static final int DEFAULT_PORT = 8080;
 
+    /**
+     * Returns the command line arguments used to launch the backend.
+     * @return the command line arguments used to launch the backend
+     */
     public List<String> toCommandLine() { 
         List<String> args = new ArrayList<>(List.of(
             backendBinary.toString(),
@@ -45,6 +49,15 @@ public record RuntimeConfig(
         return args;
     }
 
+    /**
+     * Creates a configuration with the default host and port.
+     * @param backendBinary the llamafile executable
+     * @param modelPath the GGUF model file, or {@code null} for a self-contained llamafile
+     * @param contextSize context window size in tokens; 0 uses the model default
+     * @param threads number of CPU threads
+     * @param gpuLayers number of GPU layers; 0 means CPU only
+     * @return the configuration
+     */
     public static RuntimeConfig of(Path backendBinary, Path modelPath, int contextSize, int threads, int gpuLayers) {
         return new RuntimeConfig(backendBinary, modelPath,
             DEFAULT_HOST, DEFAULT_PORT, contextSize,

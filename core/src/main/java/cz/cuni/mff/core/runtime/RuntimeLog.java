@@ -28,10 +28,18 @@ public final class RuntimeLog {
     private Integer contextSize;
     private boolean seen;
 
+    /**
+     * Creates a log keeping at most the given number of lines.
+     * @param maxLines the maximum number of lines kept in the tail buffer
+     */
     public RuntimeLog(int maxLines) {
         this.maxLines = maxLines;
     }
 
+    /**
+     * Appends a line to the log and parses it for telemetry.
+     * @param line the output line
+     */
     synchronized void append(String line) {
         if (lines.size() == maxLines) {
             lines.removeFirst();
@@ -40,12 +48,21 @@ public final class RuntimeLog {
         parse(line);
     }
 
+    /**
+     * Returns the last lines of the log.
+     * @param n the maximum number of lines to return
+     * @return the last {@code n} lines of the log
+     */
     public synchronized List<String> tail(int n) {
         List<String> all = new ArrayList<>(lines);
         int from = Math.max(0, all.size() - n);
         return List.copyOf(all.subList(from, all.size()));
     }
 
+    /**
+     * Returns the telemetry parsed so far.
+     * @return the telemetry parsed so far, or {@code null} if the backend has not reported any yet
+     */
     public synchronized RuntimeTelemetry telemetry() {
         return seen
                 ? new RuntimeTelemetry(layersOffloaded, layersTotal, memory, contextSize)

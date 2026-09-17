@@ -15,6 +15,10 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
+/**
+ * Controller for the chat view. Adapts {@link Session} events to the FX thread
+ * and renders the conversation history.
+ */
 public class ChatController {
     private final Session session;
     private final BooleanProperty busy = new SimpleBooleanProperty(true);
@@ -28,6 +32,9 @@ public class ChatController {
     @FXML private TextArea inputArea;
     @FXML private Button sendButton;
 
+    /**
+     * @param session the backend session this view talks to
+     */
     public ChatController(Session session) {
         this.session = session;
     }
@@ -92,6 +99,9 @@ public class ChatController {
         Platform.runLater(() -> historyScroll.setVvalue(1.0));
     }
 
+    /**
+     * Clears the visible conversation history.
+     */
     public void clearHistory() {
         historyBox.getChildren().clear();
     }

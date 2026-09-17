@@ -13,11 +13,21 @@ public final class ModelManager {
     private final AppConfig config;
     private final RuntimeConfigGenerator generator;
 
+    /**
+     * Creates a model manager.
+     * @param config the application configuration
+     * @param generator the runtime plan generator
+     */
     public ModelManager(AppConfig config, RuntimeConfigGenerator generator) {
         this.config = config;
         this.generator = generator;
     }
 
+    /**
+     * Selects the model to start with: the persisted selection if it exists,
+     * otherwise the first self-contained model found on disk.
+     * @return the plan for the selected model, or {@code null} if no model is available
+     */
     public RuntimePlan selectInitial() {
         LocalModel persisted = config.model();
         if (persisted != null) {
@@ -30,6 +40,12 @@ public final class ModelManager {
         return auto == null ? null : select(auto);
     }
 
+    /**
+     * Selects the given model and generates a runtime plan for it.
+     * @param model the model to select
+     * @return the generated runtime plan
+     * @throws ModelException if the model needs a runtime binary and none is available
+     */
     public RuntimePlan select(LocalModel model) {
         if (!model.selfContained() && config.runtimeBinary() == null) {
             throw new ModelException("No llamafile found to serve this model: " + model.name());

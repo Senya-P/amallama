@@ -1,3 +1,7 @@
+/**
+ * JavaFX user interface module. Depends on {@code amallama.core} and adapts
+ * its services to the FXML views.
+ */
 module amallama.ui {
     requires javafx.controls;
     requires javafx.fxml;

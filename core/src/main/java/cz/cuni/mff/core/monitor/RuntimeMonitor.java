@@ -17,6 +17,10 @@ public final class RuntimeMonitor extends NotificationBroadcasterSupport impleme
     static final String STATUS_NOTIFICATION = "cz.cuni.mff.amallama.runtime.status";
     private final Session session;
 
+    /**
+     * Creates a monitor exposing the given session.
+     * @param session the session whose status and telemetry are exposed
+     */
     public RuntimeMonitor(Session session) {
         this.session = session;
         session.addListener(this::onStatusChanged);

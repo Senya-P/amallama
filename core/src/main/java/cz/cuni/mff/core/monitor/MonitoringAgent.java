@@ -30,6 +30,7 @@ public final class MonitoringAgent {
     private ObjectName name;
 
     /**
+     * Creates an agent publishing the given MXBean on the default port.
      * @param monitor The MXBean to publish
      */
     public MonitoringAgent(RuntimeMonitorMXBean monitor) {
@@ -37,6 +38,7 @@ public final class MonitoringAgent {
     }
 
     /**
+     * Creates an agent publishing the given MXBean on the given port.
      * @param monitor The MXBean to publish
      * @param port The port the connector listens on
      */

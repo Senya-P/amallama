@@ -35,6 +35,10 @@ public final class Session {
     private RuntimeLog log;
     private RuntimePlan plan;
 
+    /**
+     * Creates a session for the given runtime manager.
+     * @param runtime the runtime manager controlling the backend process
+     */
     public Session(RuntimeManager runtime) {
         this.runtime = runtime;
     }
@@ -110,6 +114,7 @@ public final class Session {
     }
 
     /**
+     * Returns the plan the runtime is started with.
      * @return the plan the runtime is started with, or {@code null} if it has never been started
      */
     public RuntimePlan plan() {
@@ -117,6 +122,7 @@ public final class Session {
     }
 
     /**
+     * Returns the current runtime status.
      * @return the current runtime status
      */
     public RuntimeStatus status() {
@@ -124,6 +130,7 @@ public final class Session {
     }
 
     /**
+     * Returns the file name of the loaded model.
      * @return the file name of the loaded model 
      * (or of the backend binary when no separate model file is used), 
      * or {@code null} if never started
@@ -133,6 +140,7 @@ public final class Session {
     }
 
     /**
+     * Returns the telemetry parsed from the current run's output.
      * @return The telemetry parsed from the current run's output,
      * or {@code null} if the runtime has not been started
      */
@@ -146,6 +154,7 @@ public final class Session {
     }
 
     /**
+     * Returns the message of the last failure.
      * @return the message of the last failure, or {@code null} if there was none
      */
     public String lastError() {
