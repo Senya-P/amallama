@@ -8,6 +8,7 @@ module amallama.core {
     requires java.logging;
     requires transitive com.github.oshi.ffm;
     requires java.management;
+    requires java.management.rmi;
 
     exports cz.cuni.mff.core;
     exports cz.cuni.mff.core.chat;

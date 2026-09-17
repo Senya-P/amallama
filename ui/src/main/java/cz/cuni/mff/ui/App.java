@@ -6,6 +6,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -39,8 +40,6 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        //String binary = getParameters().getRaw().stream().findFirst().orElse(null);
-
         AppConfig store = new AppConfig();
         ModelManager model = new ModelManager(store, new HwAwareRuntimeConfigGenerator(new OshiHardwareDetector()));
         Session session = new Session(new LlamafileRuntimeManager());
@@ -68,6 +67,7 @@ public class App extends Application {
         Scene scene = new Scene(tabs, 1200, 800);
         scene.getStylesheets().add(App.class.getResource("dark.css").toExternalForm());
         stage.setTitle(TITLE);
+        stage.getIcons().add(new Image(App.class.getResourceAsStream("app-icon.png")));
         stage.setMinWidth(900);
         stage.setMinHeight(650);
         stage.setScene(scene);

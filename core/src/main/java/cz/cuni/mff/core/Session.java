@@ -158,7 +158,8 @@ public final class Session {
      * @return the message of the last failure, or {@code null} if there was none
      */
     public String lastError() {
-        return lastError;
+        String runtimeError = runtime.lastError();
+        return runtimeError != null ? runtimeError : lastError;
     }
 
     /**

@@ -49,17 +49,6 @@ public final class RuntimeLog {
     }
 
     /**
-     * Returns the last lines of the log.
-     * @param n the maximum number of lines to return
-     * @return the last {@code n} lines of the log
-     */
-    public synchronized List<String> tail(int n) {
-        List<String> all = new ArrayList<>(lines);
-        int from = Math.max(0, all.size() - n);
-        return List.copyOf(all.subList(from, all.size()));
-    }
-
-    /**
      * Returns the telemetry parsed so far.
      * @return the telemetry parsed so far, or {@code null} if the backend has not reported any yet
      */

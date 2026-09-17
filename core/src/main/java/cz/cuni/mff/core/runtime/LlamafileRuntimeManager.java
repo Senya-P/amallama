@@ -15,6 +15,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Logger;
 
 /**
  * Manages a llamafile backend process: launching, readiness polling, stopping,
@@ -28,8 +29,10 @@ public final class LlamafileRuntimeManager implements RuntimeManager {
     private static final Duration STOP_TIME = Duration.ofSeconds(5);
     private final AtomicReference<RuntimeStatus> status = new AtomicReference<>(RuntimeStatus.STOPPED);
     private volatile Process process;
+    private volatile String lastError;
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final List<RuntimeListener> listeners = new CopyOnWriteArrayList<>(); // multiple writers
+    private static final Logger LOGGER = Logger.getLogger(LlamafileRuntimeManager.class.getName());
 
     /**
      * Creates a runtime manager and registers a shutdown hook that kills the
@@ -44,6 +47,11 @@ public final class LlamafileRuntimeManager implements RuntimeManager {
     @Override
     public RuntimeStatus status() {
         return status.get();
+    }
+
+    @Override
+    public String lastError() {
+        return lastError;
     }
 
     @Override 
@@ -61,33 +69,53 @@ public final class LlamafileRuntimeManager implements RuntimeManager {
 
     @Override
     public CompletableFuture<RuntimeStatus> start(RuntimeConfig config, RuntimeLog log) {
+        if (process != null && process.isAlive()) {
+            stop().join();
+        }
         if (!tryStart()) {
             return CompletableFuture.failedFuture(new IllegalStateException("Runtime is already active"));
         }
+        lastError = null;
         try {
+            if (isPortInUse(config)) {
+                lastError = "Backend port " + config.port() + " is already in use by another process";
+                LOGGER.warning(lastError);
+            }
             ProcessBuilder pb = new ProcessBuilder(config.toCommandLine());
             pb.redirectOutput(ProcessBuilder.Redirect.PIPE);
             pb.redirectError(ProcessBuilder.Redirect.PIPE);
-            this.process = pb.start();
-            redirect(process.getInputStream(), log);
-            redirect(process.getErrorStream(), log);
+            Process p = pb.start();
+            this.process = p;
+            redirect(p.getInputStream(), log);
+            redirect(p.getErrorStream(), log);
 
-            process.onExit().thenRun(() -> {
-                if (status.get() == RuntimeStatus.RUNNING) {
+            p.onExit().thenRun(() -> {
+                RuntimeStatus s = status.get();
+                if (s == RuntimeStatus.STARTING || s == RuntimeStatus.RUNNING) {
+                    if (lastError == null) {
+                        lastError = "llamafile exited unexpectedly (exit code " + p.exitValue() + ")";
+                    }
                     setStatus(RuntimeStatus.FAILED);
                 }
             });
         } catch (IOException e) {
+            if (lastError == null) {
+                lastError = "Failed to launch llamafile";
+            }
             setStatus(RuntimeStatus.FAILED);
             return CompletableFuture.failedFuture(new IllegalStateException("Failed to launch llamafile", e));
         }
         return waitForRunning(config).whenComplete((s, e) -> {
             if (e != null) {
+                lastError = e.getMessage();
                 setStatus(RuntimeStatus.FAILED);
                 if (process != null && process.isAlive()) {
                     process.destroyForcibly();
                 }
             } else {
+                if (lastError == null) {
+                    lastError = "llamafile exited before becoming ready";
+                }
                 setStatus(s);
             }
         });
@@ -166,7 +194,21 @@ public final class LlamafileRuntimeManager implements RuntimeManager {
                 .thenApply(resp -> resp.statusCode() == 200)
                 .exceptionally(e -> false);
     }
-    
+
+    /**
+     * Checks whether something is already listening on the backend port.
+     * @param config the runtime configuration
+     * @return true if the port is already in use
+     */
+    private boolean isPortInUse(RuntimeConfig config) {
+        URI uri = URI.create("http://" + config.host() + ":" + config.port() + "/v1/models");
+        HttpRequest req = HttpRequest.newBuilder(uri).GET().timeout(POLL_TIMEOUT).build();
+        return httpClient.sendAsync(req, HttpResponse.BodyHandlers.discarding())
+                .thenApply(r -> true)
+                .exceptionally(e -> false)
+                .join();
+    }
+
     /**
      * Kills the child process if the program exits while the runtime is still running.
      */

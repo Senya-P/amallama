@@ -29,4 +29,10 @@ public interface RuntimeManager {
      * @param listener The listener to add.
      */
     void addListener(RuntimeListener listener);
+
+    /**
+     * Returns the message of the last runtime failure.
+     * @return the message of the last failure, or {@code null} if there was none
+     */
+    String lastError();
 }

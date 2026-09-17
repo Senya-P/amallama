@@ -20,6 +20,7 @@ import javafx.scene.layout.VBox;
  * and renders the conversation history.
  */
 public class ChatController {
+    private static final int MAX_ERROR_RETRIES = 10;
     private final Session session;
     private final BooleanProperty busy = new SimpleBooleanProperty(true);
     private String statusStyle;
@@ -67,9 +68,26 @@ public class ChatController {
         busy.set(status != RuntimeStatus.RUNNING);
         if (status == RuntimeStatus.RUNNING) {
             modelLabel.setText(session.modelName());
+        } else if (status == RuntimeStatus.FAILED) {
+            showRuntimeError(0);
         }
-
     }
+
+    /**
+     * Appends the failure reason to the status label.
+     */
+    private void showRuntimeError(int attempt) {
+        if (attempt >= MAX_ERROR_RETRIES) {
+            return;
+        }
+        String error = session.lastError();
+        if (error == null) {
+            Platform.runLater(() -> showRuntimeError(attempt + 1));
+            return;
+        }
+        statusLabel.setText("FAILED — " + error);
+    }
+
 
     @FXML
     private void onSend() {
