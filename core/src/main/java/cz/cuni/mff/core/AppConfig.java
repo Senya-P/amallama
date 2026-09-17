@@ -117,7 +117,7 @@ public class AppConfig {
 
     private static boolean isModelFile(Path p) {
         String name = p.getFileName().toString().toLowerCase();
-        return name.endsWith(".llamafile") || name.endsWith(".gguf"); // replace with ???
+        return name.contains(".llamafile") || name.endsWith(".gguf");
     }
 
     private Path resolve(String value) {
@@ -132,10 +132,15 @@ public class AppConfig {
     }
 
     private Path autodetectRuntime() {
-        Path llamafileBinary = MODELS_PATH.resolve("llamafile");
+        String binaryName = isWindows() ? "llamafile.exe" : "llamafile";
+        Path llamafileBinary = MODELS_PATH.resolve(binaryName);
         if (Files.exists(llamafileBinary)) {
             return llamafileBinary;
         }
         return null;
+    }
+
+    private static boolean isWindows() {
+        return System.getProperty("os.name").toLowerCase().contains("win");
     }
 }

@@ -20,7 +20,8 @@ public record LocalModel(
      * @return the model
      */
     public static LocalModel of(Path path) { 
-        boolean selfContained = path.getFileName().toString().endsWith(".llamafile");
+        String name = path.getFileName().toString().toLowerCase();
+        boolean selfContained = name.contains(".llamafile");
         return new LocalModel(
             path.getFileName().toString(), 
             path, 
