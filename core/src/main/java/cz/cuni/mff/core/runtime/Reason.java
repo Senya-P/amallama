@@ -14,11 +14,11 @@ public sealed interface Reason {
     record NoGpu() implements Reason {}
 
     /** A GPU was detected but its free memory is unknown. */
-    record VramUnknown(GpuInfo gpu) implements Reason {}
+    record VramUnknown() implements Reason {}
 
     /** A GPU was detected but the model does not fit. */
-    record Insufficient(GpuInfo gpu) implements Reason {}
+    record Insufficient() implements Reason {}
 
     /** The model file size could not be read, so the fit could not be decided. */
-    record ModelSizeUnknown(GpuInfo gpu) implements Reason {}
+    record ModelSizeUnknown() implements Reason {}
 }

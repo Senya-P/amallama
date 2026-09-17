@@ -16,6 +16,8 @@ import cz.cuni.mff.core.download.HFModelDownloader;
 import cz.cuni.mff.core.download.ModelDownloader;
 import cz.cuni.mff.core.hw.OshiHardwareDetector;
 import cz.cuni.mff.core.model.ModelManager;
+import cz.cuni.mff.core.monitor.MonitoringAgent;
+import cz.cuni.mff.core.monitor.RuntimeMonitor;
 import cz.cuni.mff.core.runtime.HwAwareRuntimeConfigGenerator;
 import cz.cuni.mff.core.runtime.LlamafileRuntimeManager;
 import cz.cuni.mff.core.runtime.RuntimePlan;
@@ -35,6 +37,7 @@ public class App extends Application {
         AppConfig store = new AppConfig();
         ModelManager model = new ModelManager(store, new HwAwareRuntimeConfigGenerator(new OshiHardwareDetector()));
         Session session = new Session(new LlamafileRuntimeManager());
+        new MonitoringAgent(new RuntimeMonitor(session)).tryStart();
         RuntimePlan plan = model.selectInitial();
         if (plan == null) {
             throw new IllegalStateException("No model selected and no model with runtime found");

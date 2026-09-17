@@ -45,13 +45,13 @@ public class HwAwareRuntimeConfigGenerator implements RuntimeConfigGenerator {
             return new Reason.NoGpu();
         }
         if (gpu.freeVram() < 0) {
-            return new Reason.VramUnknown(gpu);
+            return new Reason.VramUnknown();
         }
         if (modelSize <= 0) {
-            return new Reason.ModelSizeUnknown(gpu);
+            return new Reason.ModelSizeUnknown();
         }
         if (gpu.freeVram() - VRAM_RESERVE_BYTES < modelSize) {
-            return new Reason.Insufficient(gpu);
+            return new Reason.Insufficient();
         }
         return new Reason.FullOffload(gpu);
     }

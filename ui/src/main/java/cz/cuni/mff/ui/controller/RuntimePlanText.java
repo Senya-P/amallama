@@ -25,17 +25,13 @@ final class RuntimePlanText {
         if (plan == null) {
             return "No runtime plan yet";
         }
-        StringBuilder sb = new StringBuilder();
-        boolean isGpu = plan.reason() instanceof Reason.FullOffload;
-        sb.append("Running on: ").append(isGpu ? "GPU" : "CPU");
-        if (!isGpu) {
-            sb.append(" — ").append(reason(plan.reason()));
-        }
-        if (plan.reason() instanceof Reason.FullOffload full && full.gpu() != null) {
-            GpuInfo gpu = full.gpu();
-            sb.append("\n").append(gpu.name()).append(" · ").append(gpuMemory(gpu));
-        }
-        return sb.toString();
+        return switch (plan.reason()) {
+            case Reason.FullOffload(GpuInfo gpu) -> "Running on: GPU\n" + gpu.name() + " · " + gpuMemory(gpu);
+            case Reason.NoGpu _ -> "Running on: CPU · no GPU detected";
+            case Reason.VramUnknown _ -> "Running on: CPU · GPU memory unknown";
+            case Reason.Insufficient _ -> "Running on: CPU · model does not fit in GPU memory";
+            case Reason.ModelSizeUnknown _ -> "Running on: CPU · model size could not be read";
+        };
     }
 
     /** Observed memory usage and context, shown once the runtime reports them. */
@@ -57,15 +53,5 @@ final class RuntimePlanText {
 
     private static String gpuMemory(GpuInfo gpu) {
         return gpu.freeVram() < 0 ? "memory unknown" : (gpu.freeVram() / MiB) + " MiB free";
-    }
-
-    private static String reason(Reason reason) {
-        return switch (reason) {
-            case Reason.FullOffload _ -> "fits in device memory";
-            case Reason.NoGpu _ -> "no GPU detected";
-            case Reason.VramUnknown _ -> "GPU memory unknown";
-            case Reason.Insufficient _ -> "model does not fit in GPU memory";
-            case Reason.ModelSizeUnknown _ -> "model size could not be read";
-        };
     }
 }
