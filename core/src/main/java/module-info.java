@@ -1,6 +1,7 @@
 module amallama.core {
     requires com.fasterxml.jackson.databind;
     requires java.net.http;
+    requires java.logging;
     requires transitive com.github.oshi.ffm;
     requires java.management;
 

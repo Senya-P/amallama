@@ -39,10 +39,9 @@ public class App extends Application {
         Session session = new Session(new LlamafileRuntimeManager());
         new MonitoringAgent(new RuntimeMonitor(session)).tryStart();
         RuntimePlan plan = model.selectInitial();
-        if (plan == null) {
-            throw new IllegalStateException("No model selected and no model with runtime found");
+        if (plan != null) {
+            session.start(plan);
         }
-        session.start(plan);
 
         FXMLLoader chatLoader = new FXMLLoader(App.class.getResource("chat.fxml"));
         ChatController chatController = new ChatController(session);

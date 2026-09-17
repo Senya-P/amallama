@@ -17,6 +17,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Single backend facade. Keeps the in-memory conversation history.
@@ -27,9 +28,9 @@ public final class Session {
     private static final int MAX_LOG_LINES = 1500;
 
     private final RuntimeManager runtime;
-    private final List<ChatMessage> history = new ArrayList<>();
-    private ChatClient chat;
-    private String lastError;
+    private final List<ChatMessage> history = new CopyOnWriteArrayList<>();
+    private volatile ChatClient chat;
+    private volatile String lastError;
     private String modelName;
     private RuntimeLog log;
     private RuntimePlan plan;
@@ -75,12 +76,15 @@ public final class Session {
             lastError = "Runtime is not running";
             return CompletableFuture.failedFuture(new IllegalStateException(lastError));
         }
-        history.add(new ChatMessage("user", message));
-        return chat.send(new ChatRequest(DEFAULT_MODEL, List.copyOf(history)))
+        ChatMessage userMessage = new ChatMessage("user", message);
+        List<ChatMessage> requestMessages = new ArrayList<>(history);
+        requestMessages.add(userMessage);
+        return chat.send(new ChatRequest(DEFAULT_MODEL, requestMessages))
                 .whenComplete((response, error) -> {
                     if (error != null) {
                         lastError = messageOf(error);
                     } else {
+                        history.add(userMessage);
                         history.add(new ChatMessage("assistant", response.content()));
                     }
                 });

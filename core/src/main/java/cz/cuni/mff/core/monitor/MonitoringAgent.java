@@ -2,6 +2,7 @@ package cz.cuni.mff.core.monitor;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.util.logging.Logger;
 
 import javax.management.InstanceNotFoundException;
 import javax.management.JMException;
@@ -16,6 +17,7 @@ import javax.management.remote.JMXServiceURL;
  * Registers the {@link RuntimeMonitorMXBean} on the platform MBean server and exposes it through a RMI connector.
  */
 public final class MonitoringAgent {
+    private static final Logger LOGGER = Logger.getLogger(MonitoringAgent.class.getName());
     private static final int DEFAULT_PORT = 9999;
     private static final String URL = "service:jmx:rmi://127.0.0.1:%d";
     private static final String OBJECT_NAME = "cz.cuni.mff.amallama:type=Runtime";
@@ -58,17 +60,17 @@ public final class MonitoringAgent {
             new JMXServiceURL(String.format(URL, port)), null, mbs
         );
         server.start();
-        System.out.println("Monitoring: " + server.getAddress());
+        LOGGER.info("Monitoring: " + server.getAddress());
     }
 
     /**
-     * Starts the connector
-     * @throws MonitoringException if it fails
+     * Starts the connector. Failures are logged but do not propagate, so
+     * monitoring problems never take down the application.
      */
     public void tryStart() {
         try { start(); }
         catch (IOException | JMException e) {
-            throw new MonitoringException("Cannot start JMX runtime monitoring: " + e);
+            LOGGER.warning("Cannot start JMX runtime monitoring: " + e);
         }
     }
 

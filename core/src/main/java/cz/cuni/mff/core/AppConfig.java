@@ -20,7 +20,7 @@ public class AppConfig {
     private static final Path MODELS_PATH = AMALLAMA_PATH.resolve("models");
     private static final Path CONFIG_PATH = AMALLAMA_PATH.resolve("config.json");
 
-    private final ObjectMapper mapper = new ObjectMapper();
+    private static final ObjectMapper MAPPER = new ObjectMapper();
     private Config config;
 
     private record Config(String model, String runtimeBinary) {}
@@ -33,7 +33,7 @@ public class AppConfig {
         }
         if (Files.exists(CONFIG_PATH)) {
             try {
-                config = mapper.readValue(CONFIG_PATH.toFile(), Config.class);
+                config = MAPPER.readValue(CONFIG_PATH.toFile(), Config.class);
             } catch (IOException e) {
                 throw new ModelException("Cannot read config file: " + CONFIG_PATH + " — " + e.getMessage());
             }
@@ -82,7 +82,7 @@ public class AppConfig {
 
     private void save() {
         try {
-            mapper.writerWithDefaultPrettyPrinter().writeValue(CONFIG_PATH.toFile(), config);
+            MAPPER.writerWithDefaultPrettyPrinter().writeValue(CONFIG_PATH.toFile(), config);
         } catch (IOException e) {
             throw new ModelException("Cannot write config file: " + CONFIG_PATH + " — " + e.getMessage());
         }
