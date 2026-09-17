@@ -8,7 +8,9 @@ import cz.cuni.mff.core.Session;
 import cz.cuni.mff.core.download.ModelDownloader;
 import cz.cuni.mff.core.model.LocalModel;
 import cz.cuni.mff.core.model.ModelManager;
+import cz.cuni.mff.core.runtime.RuntimePlan;
 import cz.cuni.mff.core.runtime.RuntimeStatus;
+import cz.cuni.mff.core.runtime.RuntimeTelemetry;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -35,6 +37,8 @@ public class ModelController {
     @FXML private ListView<LocalModel> modelList;
     @FXML private Button loadButton;
     @FXML private Label runtimeLabel;
+    @FXML private Label deviceLabel;
+    @FXML private Label usageLabel;
     @FXML private DownloadController downloadController;
 
     public ModelController(AppConfig config, ModelManager models, Session session, ModelDownloader downloader) {
@@ -62,11 +66,20 @@ public class ModelController {
         loadButton.disableProperty().bind(
                 modelList.getSelectionModel().selectedItemProperty().isNull().or(loading)
         );
-        session.addListener(status -> Platform.runLater(() -> loading.set(isLoading(status))));
+        session.addListener(status -> Platform.runLater(() -> {
+            loading.set(isLoading(status));
+            if (status == RuntimeStatus.RUNNING) {
+                showRuntimeTelemetry();
+            }
+        }));
         downloadController.setDownloader(downloader);
         downloadController.setOnDownloaded(this::onDownloaded);
         refreshModelsList();
         refreshRuntime();
+        showRuntimePlan(session.plan());
+        if (session.status() == RuntimeStatus.RUNNING) {
+            showRuntimeTelemetry();
+        }
     }
 
     private static boolean isLoading(RuntimeStatus status) {
@@ -84,8 +97,20 @@ public class ModelController {
         if (model == null) {
             return;
         }
-        session.restart(models.select(model));
+        RuntimePlan selected = models.select(model);
+        session.restart(selected);
+        showRuntimePlan(selected);
         onModelLoaded.run();
+    }
+
+    private void showRuntimePlan(RuntimePlan plan) {
+        deviceLabel.setText(RuntimePlanText.deviceBlock(plan));
+        usageLabel.setText("");
+    }
+
+    private void showRuntimeTelemetry() {
+        RuntimeTelemetry telemetry = session.telemetry();
+        usageLabel.setText(RuntimePlanText.usageLine(telemetry));
     }
 
     private void onDownloaded(Path target) {

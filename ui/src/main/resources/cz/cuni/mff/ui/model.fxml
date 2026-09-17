@@ -13,6 +13,8 @@
     <padding>
         <Insets top="12.0" right="12.0" bottom="12.0" left="12.0"/>
     </padding>
+    <Label fx:id="deviceLabel" styleClass="device-label" wrapText="true" maxWidth="Infinity"/>
+    <Label fx:id="usageLabel" styleClass="usage-label" wrapText="true" maxWidth="Infinity"/>
     <HBox spacing="8.0" alignment="CENTER_LEFT">
         <Label fx:id="runtimeLabel" styleClass="runtime-label" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
         <Button text="Browse…" onAction="#onBrowseRuntime"/>

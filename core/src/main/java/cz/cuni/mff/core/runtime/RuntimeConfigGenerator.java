@@ -5,16 +5,14 @@ import java.nio.file.Path;
 import cz.cuni.mff.core.model.LocalModel;
 
 /**
- * Generates a runtime configuration for a given backend binary, model, and detected hardware information.
+ * Generates a runtime plan for a given backend binary and model.
  */
 public interface RuntimeConfigGenerator {
     /**
-     * Generates a runtime configuration.
-     *
+     * Generates a runtime plan.
      * @param backendBinary The path to the backend binary
-     * @param model The local model to be used
-     * @param hw The detected hardware information
-     * @return A {@link RuntimeConfig} instance representing the generated configuration
+     * @param model tThe local model to be used
+     * @return the generated {@link RuntimePlan}
      */
-    RuntimeConfig generate(Path backendBinary, LocalModel model);
+    RuntimePlan generate(Path backendBinary, LocalModel model);
 }

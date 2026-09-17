@@ -3,8 +3,8 @@ package cz.cuni.mff.core.model;
 import java.nio.file.Path;
 
 import cz.cuni.mff.core.AppConfig;
-import cz.cuni.mff.core.runtime.RuntimeConfig;
 import cz.cuni.mff.core.runtime.RuntimeConfigGenerator;
+import cz.cuni.mff.core.runtime.RuntimePlan;
 
 /**
  * Manages the selection of models.
@@ -18,7 +18,7 @@ public final class ModelManager {
         this.generator = generator;
     }
 
-    public RuntimeConfig selectInitial() {
+    public RuntimePlan selectInitial() {
         LocalModel persisted = config.model();
         if (persisted != null) {
             return select(persisted);
@@ -30,7 +30,7 @@ public final class ModelManager {
         return auto == null ? null : select(auto);
     }
 
-    public RuntimeConfig select(LocalModel model) {
+    public RuntimePlan select(LocalModel model) {
         if (!model.selfContained() && config.runtimeBinary() == null) {
             throw new ModelException("No llamafile found to serve this model: " + model.name());
         }

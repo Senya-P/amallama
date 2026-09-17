@@ -7,8 +7,11 @@ import cz.cuni.mff.core.chat.ChatResponse;
 import cz.cuni.mff.core.chat.OpenAIChatClient;
 import cz.cuni.mff.core.runtime.RuntimeConfig;
 import cz.cuni.mff.core.runtime.RuntimeListener;
+import cz.cuni.mff.core.runtime.RuntimeLog;
 import cz.cuni.mff.core.runtime.RuntimeManager;
+import cz.cuni.mff.core.runtime.RuntimePlan;
 import cz.cuni.mff.core.runtime.RuntimeStatus;
+import cz.cuni.mff.core.runtime.RuntimeTelemetry;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -20,17 +23,16 @@ import java.util.concurrent.CompletableFuture;
  */
 public final class Session {
 
-    /**
-     * Model id sent in chat requests. The llamafile server does not validate
-     * this field against the loaded model, so a fixed value is sufficient.
-     */
     private static final String DEFAULT_MODEL = "llamafile";
+    private static final int MAX_LOG_LINES = 1500;
 
     private final RuntimeManager runtime;
     private final List<ChatMessage> history = new ArrayList<>();
     private ChatClient chat;
     private String lastError;
     private String modelName;
+    private RuntimeLog log;
+    private RuntimePlan plan;
 
     public Session(RuntimeManager runtime) {
         this.runtime = runtime;
@@ -39,14 +41,17 @@ public final class Session {
     /**
      * Starts the runtime and prepares the chat client.
      *
-     * @param config runtime configuration
+     * @param plan the runtime plan to apply; kept for the UI to display
      * @return a future completing with {@link RuntimeStatus#RUNNING} on success
      * or {@link RuntimeStatus#FAILED} on failure; never completes
      * exceptionally, the reason is in {@link #lastError()}
      */
-    public CompletableFuture<RuntimeStatus> start(RuntimeConfig config) {
+    public CompletableFuture<RuntimeStatus> start(RuntimePlan plan) {
+        this.plan = plan;
+        RuntimeConfig config = plan.config();
         modelName = fileNameOf(config);
-        return runtime.start(config).handle((status, error) -> {
+        log = new RuntimeLog(MAX_LOG_LINES);
+        return runtime.start(config, log).handle((status, error) -> {
             if (error != null) {
                 lastError = messageOf(error);
                 return RuntimeStatus.FAILED;
@@ -91,13 +96,20 @@ public final class Session {
     }
 
     /**
-     * Restarts the runtime with the new configuration.
-     * @param config The new runtime configuration
+     * Restarts the runtime with the new plan.
+     * @param plan The new runtime plan
      * @return a future completing with the new runtime status
      */
-    public CompletableFuture<RuntimeStatus> restart(RuntimeConfig config) {
+    public CompletableFuture<RuntimeStatus> restart(RuntimePlan plan) {
         history.clear();
-        return stop().thenCompose(v -> start(config));
+        return stop().thenCompose(v -> start(plan));
+    }
+
+    /**
+     * @return the plan the runtime is started with, or {@code null} if it has never been started
+     */
+    public RuntimePlan plan() {
+        return plan;
     }
 
     /**
@@ -114,6 +126,14 @@ public final class Session {
      */
     public String modelName() {
         return modelName;
+    }
+
+    /**
+     * @return The telemetry parsed from the current run's output,
+     * or {@code null} if the runtime has not been started
+     */
+    public RuntimeTelemetry telemetry() {
+        return log == null ? null : log.telemetry();
     }
 
     private static String fileNameOf(RuntimeConfig config) {

@@ -9,9 +9,10 @@ public interface RuntimeManager {
     /**
      * Starts the runtime with the given configuration.
      * @param config The configuration for the runtime.
+     * @param log The log the runtime's output is redirected into.
      * @return A CompletableFuture that completes with the runtime status when the start operation is finished.
      */
-    CompletableFuture<RuntimeStatus> start(RuntimeConfig config);
+    CompletableFuture<RuntimeStatus> start(RuntimeConfig config, RuntimeLog log);
     /**
      * Stops the runtime.
      * @return A CompletableFuture that completes when the stop operation is finished.

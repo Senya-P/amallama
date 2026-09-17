@@ -11,7 +11,7 @@ import cz.cuni.mff.core.hw.HardwareInfo;
 import cz.cuni.mff.core.model.LocalModel;
 
 /**
- * Generates a runtime configuration based on the hardware information.
+ * Generates a runtime plan based on the hardware information.
  */
 public class HwAwareRuntimeConfigGenerator implements RuntimeConfigGenerator {
 
@@ -24,30 +24,42 @@ public class HwAwareRuntimeConfigGenerator implements RuntimeConfigGenerator {
     public HwAwareRuntimeConfigGenerator(HardwareDetector hardwareDetector) {
         this.hardwareDetector = hardwareDetector;
     }
+
     @Override
-    public RuntimeConfig generate(Path backendBinary, LocalModel model) {
+    public RuntimePlan generate(Path backendBinary, LocalModel model) {
         HardwareInfo hw = hardwareDetector.detect();
         int threads = getThreads(hw.cpu());
-        int gpuLayers = getGpuLayers(hw.primaryGpu(), model.path());
+        GpuInfo gpu = hw.primaryGpu();
+        long modelSize = getModelSize(model.path());
         Path modelPath = model.selfContained() ? null : model.path();
-        return RuntimeConfig.of(backendBinary, modelPath, 0, threads, gpuLayers); // TODO: context detection
+
+        Reason reason = provideReason(gpu, modelSize);
+        int gpuLayers = reason instanceof Reason.FullOffload ? FULL_OFFLOAD : NO_OFFLOAD;
+        RuntimeConfig config = RuntimeConfig.of(backendBinary, modelPath, 0, threads, gpuLayers); // TODO: context detection
+
+        return new RuntimePlan(config, reason);
+    }
+
+    private static Reason provideReason(GpuInfo gpu, long modelSize) {
+        if (gpu == null) {
+            return new Reason.NoGpu();
+        }
+        if (gpu.freeVram() < 0) {
+            return new Reason.VramUnknown(gpu);
+        }
+        if (modelSize <= 0) {
+            return new Reason.ModelSizeUnknown(gpu);
+        }
+        if (gpu.freeVram() - VRAM_RESERVE_BYTES < modelSize) {
+            return new Reason.Insufficient(gpu);
+        }
+        return new Reason.FullOffload(gpu);
     }
 
     private int getThreads(CpuInfo cpu) {
         return cpu.physicalCores() > 0 ? cpu.physicalCores() : cpu.logicalCores();
     }
-    
-    private int getGpuLayers(GpuInfo gpu, Path modelPath) {
-        if (gpu == null) {
-            return NO_OFFLOAD;
-        }
-        long freeVram = gpu.freeVram();
-        long size = getModelSize(modelPath);
-        if (size <= 0 || freeVram - VRAM_RESERVE_BYTES < size) {
-            return NO_OFFLOAD;
-        }
-        return FULL_OFFLOAD;
-    }
+
     private static long getModelSize(Path modelPath) {
         try {
             return Files.size(modelPath);

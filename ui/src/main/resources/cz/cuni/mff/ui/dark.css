@@ -185,6 +185,18 @@
     -fx-text-fill: #f85149;
 }
 
+.device-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #b8b8b8;
+    -fx-padding: 0 10;
+}
+
+.usage-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #8a8a8a;
+    -fx-padding: 0 10;
+}
+
 .list-view {
     -fx-background-color: #262626;
     -fx-background-radius: 6;

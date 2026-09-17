@@ -1,10 +1,14 @@
 package cz.cuni.mff.core.runtime;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -48,15 +52,18 @@ public final class LlamafileRuntimeManager implements RuntimeManager {
     }
 
     @Override
-    public CompletableFuture<RuntimeStatus> start(RuntimeConfig config) {
+    public CompletableFuture<RuntimeStatus> start(RuntimeConfig config, RuntimeLog log) {
         if (!tryStart()) {
             return CompletableFuture.failedFuture(new IllegalStateException("Runtime is already active"));
         }
         try {
             ProcessBuilder pb = new ProcessBuilder(config.toCommandLine());
-            pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-            pb.redirectError(ProcessBuilder.Redirect.INHERIT);
+            pb.redirectOutput(ProcessBuilder.Redirect.PIPE);
+            pb.redirectError(ProcessBuilder.Redirect.PIPE);
             this.process = pb.start();
+            redirect(process.getInputStream(), log);
+            redirect(process.getErrorStream(), log);
+
             process.onExit().thenRun(() -> {
                 if (status.get() == RuntimeStatus.RUNNING) {
                     setStatus(RuntimeStatus.FAILED);
@@ -170,4 +177,18 @@ public final class LlamafileRuntimeManager implements RuntimeManager {
             p.destroyForcibly();
         }
     }
+
+    private static void redirect(InputStream in, RuntimeLog log) {
+        Thread.ofPlatform().daemon().name("llamafile-output").start(() -> {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    log.append(line);
+                }
+            } catch (IOException e) {
+               // stream closed, ignore
+            }
+        });
+    }
+
 }

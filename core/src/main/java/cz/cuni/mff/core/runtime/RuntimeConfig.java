@@ -35,6 +35,7 @@ public record RuntimeConfig(
             "-c", String.valueOf(contextSize),
             "-t", String.valueOf(threads),
             "-ngl", String.valueOf(gpuLayers),
+            "-lv", "4",
             "--host", host,
             "--port", String.valueOf(port)
         ));

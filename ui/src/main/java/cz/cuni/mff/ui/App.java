@@ -18,7 +18,7 @@ import cz.cuni.mff.core.hw.OshiHardwareDetector;
 import cz.cuni.mff.core.model.ModelManager;
 import cz.cuni.mff.core.runtime.HwAwareRuntimeConfigGenerator;
 import cz.cuni.mff.core.runtime.LlamafileRuntimeManager;
-import cz.cuni.mff.core.runtime.RuntimeConfig;
+import cz.cuni.mff.core.runtime.RuntimePlan;
 import cz.cuni.mff.ui.controller.ChatController;
 import cz.cuni.mff.ui.controller.ModelController;
 
@@ -35,11 +35,11 @@ public class App extends Application {
         AppConfig store = new AppConfig();
         ModelManager model = new ModelManager(store, new HwAwareRuntimeConfigGenerator(new OshiHardwareDetector()));
         Session session = new Session(new LlamafileRuntimeManager());
-        RuntimeConfig config = model.selectInitial();
-        if (config == null) {
+        RuntimePlan plan = model.selectInitial();
+        if (plan == null) {
             throw new IllegalStateException("No model selected and no model with runtime found");
         }
-        session.start(config);
+        session.start(plan);
 
         FXMLLoader chatLoader = new FXMLLoader(App.class.getResource("chat.fxml"));
         ChatController chatController = new ChatController(session);
