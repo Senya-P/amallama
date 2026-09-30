@@ -31,6 +31,7 @@ import cz.cuni.mff.ui.controller.ModelController;
 public class App extends Application {
 
     private static final String TITLE = "amallama";
+    private MonitoringAgent monitoring;
 
     /**
      * Creates the application.
@@ -43,7 +44,8 @@ public class App extends Application {
         AppConfig store = new AppConfig();
         ModelManager model = new ModelManager(store, new HwAwareRuntimeConfigGenerator(new OshiHardwareDetector()));
         Session session = new Session(new LlamafileRuntimeManager());
-        new MonitoringAgent(new RuntimeMonitor(session)).tryStart();
+        monitoring = new MonitoringAgent(new RuntimeMonitor(session));
+        monitoring.tryStart();
         RuntimePlan plan = model.selectInitial();
         if (plan != null) {
             session.start(plan);
@@ -72,6 +74,13 @@ public class App extends Application {
         stage.setMinHeight(650);
         stage.setScene(scene);
         stage.show();
+    }
+
+    @Override
+    public void stop() {
+        if (monitoring != null) {
+            monitoring.tryStop();
+        }
     }
 
     /**
