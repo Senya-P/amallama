@@ -29,15 +29,19 @@ public final class ModelManager {
      * @return the plan for the selected model, or {@code null} if no model is available
      */
     public RuntimePlan selectInitial() {
-        LocalModel persisted = config.model();
-        if (persisted != null) {
-            return select(persisted);
+        try {
+            LocalModel persisted = config.model();
+            if (persisted != null) {
+                return select(persisted);
+            }
+            return config.getModels().stream()
+                    .filter(LocalModel::selfContained)
+                    .findFirst()
+                    .map(this::select)
+                    .orElse(null);
+        } catch (ModelException e) {
+            return null;
         }
-        LocalModel auto = config.getModels().stream()
-                .filter(LocalModel::selfContained)
-                .findFirst()
-                .orElse(null);
-        return auto == null ? null : select(auto);
     }
 
     /**
