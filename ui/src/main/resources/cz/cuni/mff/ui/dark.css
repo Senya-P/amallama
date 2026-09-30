@@ -78,6 +78,29 @@
     -fx-background-radius: 6;
 }
 
+/* Read-only TextArea bubbles */
+.message-area {
+    -fx-background-color: transparent;
+    -fx-background-radius: 8;
+    -fx-border-width: 0;
+    -fx-border-color: transparent;
+    -fx-min-height: 0;
+    -fx-focus-traversable: false;
+    -fx-highlight-fill: transparent;
+}
+.message-area:focused {
+    -fx-highlight-fill: -fx-accent;
+}
+.message-area .content {
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-padding: 0;
+    -fx-min-height: 0;
+}
+.message-area:focused .content {
+    -fx-background-color: transparent;
+}
+
 .status-dot {
     -fx-min-width: 8px;
     -fx-min-height: 8px;

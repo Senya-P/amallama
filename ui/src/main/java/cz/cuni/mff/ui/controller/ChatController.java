@@ -5,6 +5,8 @@ import cz.cuni.mff.core.runtime.RuntimeStatus;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -14,6 +16,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 
 /**
  * Controller for the chat view. Adapts {@link Session} events to the FX thread
@@ -110,11 +113,47 @@ public class ChatController {
     }
 
     private void appendMessage(String role, String content) {
-        Label message = new Label(content);
-        message.getStyleClass().addAll("message", role);
+        TextArea message = new TextArea(content);
+        message.setEditable(false);
         message.setWrapText(true);
+        message.getStyleClass().addAll("message", role, "message-area");
+        fitHeightToContent(message);
         historyBox.getChildren().add(message);
         Platform.runLater(() -> historyScroll.setVvalue(1.0));
+    }
+
+    /**
+     * Grows a message bubble to fit its text. TextArea has no fit-to-content mode, so the height
+     * is derived from the Text node the skin already uses to render the text.
+     * @param area the message bubble
+     */
+    private static void fitHeightToContent(TextArea area) {
+        area.widthProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> obs, Number oldW, Number newW) {
+                // The first width change happens during the initial layout pass, by which point
+                // the skin and its Text node both exist. Later width changes are already covered
+                // by the layout bounds listener, because re-wrapping changes the text height.
+                Text node = (Text) area.lookup(".text");
+                if (node == null) {
+                    return;
+                }
+                area.widthProperty().removeListener(this);
+                node.layoutBoundsProperty().addListener((l, a, b) -> resizeToContent(area, node));
+                resizeToContent(area, node);
+            }
+        });
+    }
+
+    /**
+     * Mirrors the rendered text height into the bubble's preferred height, so no internal scrollbar appears.
+     * @param area the message bubble
+     * @param node the Text node holding the rendered message
+     */
+    private static void resizeToContent(TextArea area, Text node) {
+        area.setPrefHeight(node.getLayoutBounds().getHeight()
+                + area.getPadding().getTop() + area.getPadding().getBottom() + 2);
+        area.requestLayout();
     }
 
     /**
