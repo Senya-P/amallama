@@ -6,6 +6,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
+import cz.cuni.mff.core.AppException;
 import cz.cuni.mff.core.download.DownloadProgress;
 import cz.cuni.mff.core.download.ModelDownloader;
 import javafx.application.Platform;
@@ -108,6 +109,7 @@ public class DownloadController {
     }
 
     private void finishDownload(Path target, Throwable error) {
+        downloadStatus.getStyleClass().remove("error-text");
         downloading.set(false);
         progressBar.setProgress(0);
         if (error != null) {
@@ -115,7 +117,7 @@ public class DownloadController {
                 downloadStatus.setText("Download cancelled");
             } else {
                 downloadStatus.getStyleClass().add("error-text");
-                downloadStatus.setText(error.getMessage() != null ? error.getMessage() : error.toString());
+                downloadStatus.setText(AppException.userMessage(error, "Download failed"));
             }
             return;
         }

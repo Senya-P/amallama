@@ -77,6 +77,16 @@ public final class MonitoringAgent {
     }
 
     /**
+     * Stops the connector. Failures are logged but do not propagate.
+     */
+    public void tryStop() {
+        try { stop(); }
+        catch (IOException | MBeanRegistrationException e) {
+            LOGGER.warning("Cannot stop JMX runtime monitoring. You might want to clean up the process: " + e);
+        }
+    }
+
+    /**
      * Stops the connector and unregisters the MBean.
      *
      * @throws IOException if the connector cannot be closed

@@ -17,6 +17,8 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 /**
@@ -25,6 +27,7 @@ import java.util.function.Consumer;
  */
 public final class HFModelDownloader implements ModelDownloader {
 
+    private static final Logger LOGGER = Logger.getLogger(HFModelDownloader.class.getName());
     private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(30);
     private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(60);
     private static final int BUFFER_SIZE = 64 * 1024;
@@ -40,7 +43,7 @@ public final class HFModelDownloader implements ModelDownloader {
         try {
             Files.createDirectories(targetDir);
         } catch (IOException e) {
-            throw new DownloadException("Cannot create models directory: " + targetDir + " — " + e.getMessage());
+            throw new DownloadException("Cannot create the models directory: " + targetDir, e);
         }
         this.http = HttpClient.newBuilder()
                 .followRedirects(HttpClient.Redirect.NORMAL)
@@ -59,7 +62,7 @@ public final class HFModelDownloader implements ModelDownloader {
         } catch (DownloadException e) {
             return CompletableFuture.failedFuture(e);
         } catch (IOException e) {
-            return CompletableFuture.failedFuture(new DownloadException("Download failed: " + e.getMessage()));
+            return CompletableFuture.failedFuture(new DownloadException("Cannot prepare the download", e));
         }
         CompletableFuture<Path> result = new CompletableFuture<>();
         AtomicReference<InputStream> active = new AtomicReference<>();
@@ -81,7 +84,7 @@ public final class HFModelDownloader implements ModelDownloader {
                 .whenComplete((response, error) -> {
                     try {
                         if (error != null) { 
-                            result.completeExceptionally(new DownloadException("Download failed: " + error.getMessage())); 
+                            result.completeExceptionally(new DownloadException("Cannot reach the model host", error)); 
                             return; 
                         }
                         int code = response.statusCode();
@@ -90,18 +93,34 @@ public final class HFModelDownloader implements ModelDownloader {
                         active.set(response.body());
                         long total = response.headers().firstValueAsLong("Content-Length").orElse(0L);
                         writeFile(response.body(), target, partial, total, progress, result);
-                    } catch (Exception e) {
-                        try {
-                            Files.deleteIfExists(partial);
-                        }
-                        catch (IOException ex) {}
+                    } catch (DownloadException | CancellationException e) {
+                        cleanupPartial(partial);
                         if (!result.isDone()) {
-                            result.completeExceptionally(new DownloadException("Download failed: " + e.getMessage()));
+                            result.completeExceptionally(e);
+                        }
+                    } catch (IOException e) {
+                        cleanupPartial(partial);
+                        if (!result.isDone()) {
+                            result.completeExceptionally(new DownloadException("Cannot write the model file", e));
+                        }
+                    } catch (RuntimeException e) {
+                        LOGGER.log(Level.WARNING, "Unexpected failure while downloading " + url, e);
+                        cleanupPartial(partial);
+                        if (!result.isDone()) {
+                            result.completeExceptionally(new DownloadException("Download failed unexpectedly", e));
                         }
                     }
                 });
         return result;
     }
+    private static void cleanupPartial(Path partial) {
+        try {
+            Files.deleteIfExists(partial);
+        } catch (IOException ignored) {
+            // the partial file is best-effort cleanup; nothing useful to do if it stays
+        }
+    }
+
     private Path resolveTarget(String url) throws DownloadException {
         try {
             String path = URI.create(url.trim()).getPath();
@@ -111,7 +130,7 @@ public final class HFModelDownloader implements ModelDownloader {
             if (!name.toLowerCase().endsWith(".gguf")) throw new DownloadException("Only .gguf models: " + name);
             return downloadDirectory.resolve(name).normalize();
         } catch (IllegalArgumentException e) {
-            throw new DownloadException("Invalid URL: " + url + " — " + e.getMessage());
+            throw new DownloadException("Invalid URL: " + url, e);
         }
     }
 

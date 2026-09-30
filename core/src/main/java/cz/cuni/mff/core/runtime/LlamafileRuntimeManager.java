@@ -9,12 +9,20 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
 import java.time.Duration;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -76,6 +84,7 @@ public final class LlamafileRuntimeManager implements RuntimeManager {
             return CompletableFuture.failedFuture(new IllegalStateException("Runtime is already active"));
         }
         lastError = null;
+        String suspicion = ensureRunnable(config.backendBinary());
         try {
             if (isPortInUse(config)) {
                 lastError = "Backend port " + config.port() + " is already in use by another process";
@@ -100,22 +109,20 @@ public final class LlamafileRuntimeManager implements RuntimeManager {
             });
         } catch (IOException e) {
             if (lastError == null) {
-                lastError = "Failed to launch llamafile";
+                lastError = suspicion != null ? suspicion : "Failed to launch llamafile";
             }
+            LOGGER.log(Level.WARNING, "llamafile launch failed", e);
             setStatus(RuntimeStatus.FAILED);
-            return CompletableFuture.failedFuture(new IllegalStateException("Failed to launch llamafile", e));
+            return CompletableFuture.failedFuture(new IllegalStateException(lastError, e));
         }
         return waitForRunning(config).whenComplete((s, e) -> {
             if (e != null) {
-                lastError = e.getMessage();
+                lastError = e.getMessage() != null ? e.getMessage() : "llamafile failed to start";
                 setStatus(RuntimeStatus.FAILED);
                 if (process != null && process.isAlive()) {
                     process.destroyForcibly();
                 }
             } else {
-                if (lastError == null) {
-                    lastError = "llamafile exited before becoming ready";
-                }
                 setStatus(s);
             }
         });
@@ -168,25 +175,39 @@ public final class LlamafileRuntimeManager implements RuntimeManager {
      */
     private CompletableFuture<RuntimeStatus> waitForRunning(RuntimeConfig config) {
         return CompletableFuture.supplyAsync(() -> {
-            URI uri = URI.create("http://" + config.host() + ":" + config.port() + "/v1/models");
-            HttpRequest req = HttpRequest.newBuilder(uri).GET().timeout(POLL_TIMEOUT).build();
-            long deadline = System.nanoTime() + READY_TIMEOUT.toNanos();
-            while (System.nanoTime() < deadline) {
-                if (process == null || !process.isAlive()) {
-                    throw new IllegalStateException("llamafile exited before becoming ready");
-                }
-                if (poll(req).join()) {
-                    return RuntimeStatus.RUNNING;
-                }
-                try {
-                    Thread.sleep(POLL_INTERVAL.toMillis());
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    throw new IllegalStateException("Thread interrupted while waiting for llamafile to become ready", e);
-                }
+            try {
+                return awaitReady(config);
+            } catch (RuntimeException e) {
+                LOGGER.log(Level.WARNING, "Unexpected failure while waiting for llamafile", e);
+                throw new IllegalStateException("llamafile did not become ready", e);
             }
-            throw new IllegalStateException("llamafile did not become ready within " + READY_TIMEOUT.toSeconds() + " seconds");
         });
+    }
+
+    /**
+     * Polls until the backend answers. Every failure raised here carries a message written for the user.
+     * @param config the runtime configuration
+     * @return RuntimeStatus.RUNNING once the backend responds
+     */
+    private RuntimeStatus awaitReady(RuntimeConfig config) {
+        URI uri = URI.create("http://" + config.host() + ":" + config.port() + "/v1/models");
+        HttpRequest req = HttpRequest.newBuilder(uri).GET().timeout(POLL_TIMEOUT).build();
+        long deadline = System.nanoTime() + READY_TIMEOUT.toNanos();
+        while (System.nanoTime() < deadline) {
+            if (process == null || !process.isAlive()) {
+                throw new IllegalStateException("llamafile exited before becoming ready");
+            }
+            if (poll(req).join()) {
+                return RuntimeStatus.RUNNING;
+            }
+            try {
+                Thread.sleep(POLL_INTERVAL.toMillis());
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IllegalStateException("Thread interrupted while waiting for llamafile to become ready", e);
+            }
+        }
+        throw new IllegalStateException("llamafile did not become ready within " + READY_TIMEOUT.toSeconds() + " seconds");
     }
 
     private CompletableFuture<Boolean> poll(HttpRequest req) {
@@ -207,6 +228,61 @@ public final class LlamafileRuntimeManager implements RuntimeManager {
                 .thenApply(r -> true)
                 .exceptionally(e -> false)
                 .join();
+    }
+
+    /**
+     * Checks that the binary is runnable, without preventing the launch.
+     *
+     * @param binary The llamafile binary
+     * @return a user-facing reason the launch is likely to fail, or {@code null} if nothing stands out
+     */
+    private String ensureRunnable(Path binary) {
+        try {
+            if (!Files.exists(binary)) {
+                LOGGER.warning("llamafile binary not found: " + binary.getFileName());
+                return "llamafile not found: " + binary.getFileName();
+            }
+            if (isWindows() && !binary.getFileName().toString().toLowerCase().endsWith(".exe")) {
+                LOGGER.warning("llamafile does not end with .exe: " + binary);
+                return "llamafile must end with .exe on Windows: " + binary.getFileName();
+            }
+            ensurePermissions(binary);
+            if (!Files.isExecutable(binary)) {
+                LOGGER.warning("llamafile is not executable: " + binary);
+                return binary.getFileName() + " is not executable";
+            }
+            return null;
+        } catch (SecurityException e) {
+            LOGGER.log(Level.WARNING, "Cannot assess " + binary + ", attempting the launch anyway", e);
+            return null;
+        }
+    }
+
+    /**
+     * Ensures the binary has executable permissions. Best-effort; failures are logged only.
+     * @param binary The llamafile binary
+     */
+    private void ensurePermissions(Path binary) {
+        if (!FileSystems.getDefault().supportedFileAttributeViews().contains("posix")) {
+            return;
+        }
+        try {
+            Set<PosixFilePermission> before = Files.getPosixFilePermissions(binary);
+            if (before.contains(PosixFilePermission.OWNER_EXECUTE)) {
+                return;
+            }
+            Set<PosixFilePermission> after = EnumSet.noneOf(PosixFilePermission.class);
+            after.addAll(before);
+            after.add(PosixFilePermission.OWNER_EXECUTE);
+            Files.setPosixFilePermissions(binary, after);
+            LOGGER.warning("Added OWNER_EXECUTE to " + binary + " (" + before + " -> " + after + ")");
+        } catch (IOException | SecurityException e) {
+            LOGGER.log(Level.WARNING, "Cannot add OWNER_EXECUTE to " + binary, e);
+        }
+    }
+
+    private static boolean isWindows() {
+        return System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("win");
     }
 
     /**

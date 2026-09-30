@@ -58,7 +58,7 @@ public final class Session {
         log = new RuntimeLog(MAX_LOG_LINES);
         return runtime.start(config, log).handle((status, error) -> {
             if (error != null) {
-                lastError = messageOf(error);
+                lastError = AppException.userMessage(error, "Could not start the model");
                 return RuntimeStatus.FAILED;
             }
             if (status == RuntimeStatus.RUNNING) {
@@ -86,7 +86,7 @@ public final class Session {
         return chat.send(new ChatRequest(DEFAULT_MODEL, requestMessages))
                 .whenComplete((response, error) -> {
                     if (error != null) {
-                        lastError = messageOf(error);
+                        lastError = AppException.userMessage(error, "Could not reach the model");
                     } else {
                         history.add(userMessage);
                         history.add(new ChatMessage("assistant", response.content()));
@@ -168,15 +168,5 @@ public final class Session {
      */
     public void addListener(RuntimeListener listener) { 
         runtime.addListener(listener); 
-    }
-
-    /**
-     * Returns a user-friendly message for the given error.
-     * @param error
-     * @return a message describing the error
-     */
-    private static String messageOf(Throwable error) {
-        Throwable cause = error.getCause() != null ? error.getCause() : error;
-        return cause.getMessage() != null ? cause.getMessage() : cause.toString();
     }
 }

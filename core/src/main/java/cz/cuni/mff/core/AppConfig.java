@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -32,13 +33,13 @@ public class AppConfig {
         try {
             Files.createDirectories(MODELS_PATH);
         } catch (IOException e) {
-            throw new ModelException("Cannot create models directory: " + MODELS_PATH + " — " + e.getMessage());
+            throw new ModelException("Cannot create the models directory: " + MODELS_PATH, e);
         }
         if (Files.exists(CONFIG_PATH)) {
             try {
                 config = MAPPER.readValue(CONFIG_PATH.toFile(), Config.class);
             } catch (IOException e) {
-                throw new ModelException("Cannot read config file: " + CONFIG_PATH + " — " + e.getMessage());
+                throw new ModelException("Cannot read the configuration file: " + CONFIG_PATH, e);
             }
         } else {
             config = new Config(null, null);
@@ -58,7 +59,7 @@ public class AppConfig {
                     .sorted(Comparator.comparing(LocalModel::name))
                     .toList();
         } catch (IOException e) {
-            throw new ModelException("Cannot scan models directory: " + MODELS_PATH + " — " + e.getMessage());
+            throw new ModelException("Cannot scan the models directory: " + MODELS_PATH, e);
         }
     }
 
@@ -111,7 +112,7 @@ public class AppConfig {
         try {
             MAPPER.writerWithDefaultPrettyPrinter().writeValue(CONFIG_PATH.toFile(), config);
         } catch (IOException e) {
-            throw new ModelException("Cannot write config file: " + CONFIG_PATH + " — " + e.getMessage());
+            throw new ModelException("Cannot write the configuration file: " + CONFIG_PATH, e);
         }
     }
 
@@ -141,6 +142,6 @@ public class AppConfig {
     }
 
     private static boolean isWindows() {
-        return System.getProperty("os.name").toLowerCase().contains("win");
+        return System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("win");
     }
 }

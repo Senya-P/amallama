@@ -13,11 +13,14 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * A chat client that communicates with the OpenAI API.
  */
 public final class OpenAIChatClient implements ChatClient {
+    private static final Logger LOGGER = Logger.getLogger(OpenAIChatClient.class.getName());
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final HttpClient http;
@@ -45,9 +48,8 @@ public final class OpenAIChatClient implements ChatClient {
 
     private ChatResponse handleResponse(HttpResponse<String> response) {
         if (response.statusCode() != 200) {
-            throw new ChatException(
-                "Chat completion failed: HTTP " + response.statusCode() + " — " + response.body()
-            );
+            LOGGER.log(Level.WARNING, "Chat completion failed: HTTP " + response.statusCode(), response.body());
+            throw new ChatException("Chat completion failed: HTTP " + response.statusCode());
         }
         return toChatResponse(readResponse(response.body()));
     }
@@ -56,7 +58,8 @@ public final class OpenAIChatClient implements ChatClient {
         try {
             return MAPPER.readValue(body, CompletionResponse.class);
         } catch (JsonProcessingException e) {
-            throw new ChatException("Failed to parse chat response" + ": " + e.getMessage());
+            LOGGER.log(Level.WARNING, "Cannot parse the chat response", e);
+            throw new ChatException("Failed to parse the chat response", e);
         }
     }
 
@@ -64,7 +67,8 @@ public final class OpenAIChatClient implements ChatClient {
         try {
             return MAPPER.writeValueAsString(request);
         } catch (JsonProcessingException e) {
-            throw new ChatException("Failed to serialize chat request" + ": " + e.getMessage());
+            LOGGER.log(Level.WARNING, "Cannot serialize the chat request", e);
+            throw new ChatException("Failed to send the chat request", e);
         }
     }
 
